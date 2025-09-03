@@ -1,29 +1,37 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+import React, { useState, useEffect } from 'react';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useFonts } from 'expo-font';
+import { AppProvider } from '@/context/AppContext';
+import { ThemeProvider } from '@/context/ThemeContext';
+import SplashScreen from './splash-screen';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  const [showSplash, setShowSplash] = useState(true);
+  const [fontsLoaded] = useFonts({
+    'SF-Pro-Display-Regular': require('../assets/fonts/SF-Pro-Display-Regular.otf'),
+    'SF-Pro-Display-Bold': require('../assets/fonts/SF-Pro-Display-Bold.otf'),
   });
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
+  if (showSplash || !fontsLoaded) {
+    return (
+      <ThemeProvider>
+        <SplashScreen onFinish={() => setShowSplash(false)} />
+      </ThemeProvider>
+    );
   }
 
+  // Fonts are loaded; use fontFamily: 'SF-Pro-Display-Regular' or 'SF-Pro-Display-Bold' in styles where needed.
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
+    <ThemeProvider>
+      <AppProvider>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: 'none',
+          }}
+        />
+      </AppProvider>
     </ThemeProvider>
   );
 }

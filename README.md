@@ -1,50 +1,128 @@
-# Welcome to your Expo app 👋
+# Focus & Flow - Productivity App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native productivity app built with Expo and TypeScript, designed around principles from **Deep Work**, **Atomic Habits**, and **Thinking Fast and Slow**.
 
-## Get started
+## 🎯 Features
 
-1. Install dependencies
+### Core Functionality
+- **Inbox & Quick Capture**: Quickly add tasks with title and optional notes
+- **Focus Sessions**: Timer-based deep work sessions (25/50/90 min) with progress tracking
+- **Habit Tracker**: Build micro-habits with streak tracking and daily completion
+- **Daily Planning**: Select your top 3 most important tasks each day
+- **Decision Pause Journal**: 3-question reflection tool for intentional decision-making
+- **Analytics**: Weekly review with focus time, habit success rate, and insights
 
+### Design Principles
+- **Deep Work**: Distraction-free focus sessions with minimal UI during work
+- **Atomic Habits**: Micro-goals and streak tracking to build lasting habits
+- **Thinking Fast and Slow**: Decision pause feature for more deliberate choices
+
+## 🚀 Getting Started
+
+1. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. Start the app
-
+2. **Start the development server**
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+3. **Run on device/emulator**
+   - Press `a` for Android emulator
+   - Press `i` for iOS simulator
+   - Scan QR code with Expo Go app on your phone
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 📱 App Structure
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Screens
+- **Home**: Dashboard with today's top 3 tasks, habits overview, and quick actions
+- **Inbox**: Task capture and management
+- **Focus Session**: Timer interface with progress ring and session tracking
+- **Habits**: Habit creation, tracking, and streak visualization
+- **Daily Planning**: Morning routine to select top 3 tasks
+- **Analytics**: Weekly progress review and insights
+- **Settings**: Preferences and data management
 
-## Get a fresh project
+### Key Components
+- **TaskList/TaskItem**: Task display and interaction
+- **FocusTimer**: Circular progress timer with controls
+- **HabitItem**: Habit tracking with streak display
+- **AnalyticsChart**: Progress visualization
+- **DailyPrompt**: Top 3 task selection interface
 
-When you're ready, run:
+## 🗂️ Data Model
 
-```bash
-npm run reset-project
-```
+### Local Storage (AsyncStorage)
+- **Tasks**: `{ id, title, note?, createdAt, dueAt?, status }`
+- **Focus Sessions**: `{ id, startTime, endTime, plannedDuration, actualDuration, interruptions }`
+- **Habits**: `{ id, title, microGoal, streak, history[] }`
+- **Daily Top 3**: `{ date, taskIds[] }`
+- **Journal Entries**: `{ id, timestamp, q1, q2, q3 }`
+- **Settings**: Focus durations, notifications, reminders
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🎨 Design Guidelines
 
-## Learn more
+- **Minimalist UI**: Clean, distraction-free interface
+- **Neutral Colors**: White backgrounds, dark text, blue accents
+- **Large Typography**: Readable fonts for timers and main content
+- **StyleSheet Only**: No external styling libraries
+- **iOS-Inspired**: Native feel with proper spacing and shadows
 
-To learn more about developing your project with Expo, look at the following resources:
+## 🔧 Technical Stack
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- **React Native** with Expo SDK 53
+- **TypeScript** for type safety
+- **Expo Router** for file-based navigation
+- **React Navigation** for tab and stack navigation
+- **AsyncStorage** for local data persistence
+- **React Context** for state management
+- **React Native SVG** for progress rings and charts
 
-## Join the community
+## 📋 User Flow
 
-Join our community of developers creating universal apps.
+1. **Morning Planning**: Set your top 3 tasks for the day
+2. **Task Capture**: Add tasks to inbox as they come to mind
+3. **Focus Work**: Start timed focus sessions on important tasks
+4. **Habit Building**: Track daily micro-habits and build streaks
+5. **Decision Making**: Use pause journal when feeling scattered
+6. **Weekly Review**: Analyze progress and adjust approach
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 🎯 Productivity Philosophy
+
+### Deep Work Principles
+- Uninterrupted focus blocks
+- Minimal interface during work
+- Session logging and analysis
+
+### Atomic Habits Framework
+- Micro-goals (2-minute rule)
+- Streak tracking for motivation
+- Daily habit completion
+
+### Slow Thinking Integration
+- Decision pause for reactive moments
+- Reflection questions for clarity
+- Intentional task prioritization
+
+## 🔄 Development
+
+The app uses React Context for state management with automatic AsyncStorage persistence. All data is stored locally - no authentication or cloud sync required.
+
+### Key Files
+- `context/AppContext.tsx` - Global state management
+- `services/storage.ts` - AsyncStorage operations
+- `types/index.ts` - TypeScript interfaces
+- `app/(tabs)/` - Main tab screens
+- `app/focus-session.tsx` - Full-screen timer
+- `app/daily-planning.tsx` - Morning planning flow
+
+## 📊 No External Dependencies
+
+- No Firebase, Supabase, or authentication
+- No Tailwind, NativeWind, or CSS-in-JS
+- No social features or cloud sync
+- Pure React Native with minimal dependencies
+
+Start building better habits and deeper focus today! 🚀
