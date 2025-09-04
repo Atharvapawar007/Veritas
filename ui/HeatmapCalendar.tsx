@@ -174,7 +174,10 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({
                   styles.dayCell,
                   {
                     backgroundColor: getHeatmapColor(day.hours, maxHours, theme.isDark),
-                    borderColor: day.isToday ? theme.blue : 'transparent',
+                    borderColor: day.isToday 
+                      ? theme.blue 
+                      : (theme.isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.18)'),
+                    borderWidth: day.isToday ? 2 : 1,
                     opacity: day.isCurrentMonth ? 1 : 0.4,
                   },
                 ]}
@@ -235,7 +238,13 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({
                 
                 <View style={[
                   styles.modalDateSquare,
-                  { backgroundColor: getHeatmapColor(selectedDay.hours, maxHours, theme.isDark) }
+                  { 
+                    backgroundColor: getHeatmapColor(selectedDay.hours, maxHours, theme.isDark),
+                    borderColor: selectedDay.isToday 
+                      ? theme.blue 
+                      : (theme.isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.18)'),
+                    borderWidth: selectedDay.isToday ? 2 : 1,
+                  }
                 ]}>
                   <Text style={[styles.modalDateNumber, { color: selectedDay.hours > 0 ? '#FFFFFF' : theme.textSecondary }]}>
                     {selectedDay.date.getDate()}
@@ -314,7 +323,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: 1,
+    borderStyle: 'solid',
   },
   dayNumber: {
     fontSize: 12,
@@ -373,6 +383,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+    borderWidth: 1,
   },
   modalDateNumber: {
     fontSize: 24,

@@ -1,17 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Svg, { Circle } from 'react-native-svg';
 import { useAppContext } from '@/context/AppContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { FocusSession, Task } from '@/types';
+import { AnimatedCard } from '@/ui/AnimatedCard';
+import ProgressRing from '@/ui/ProgressRing';
 import * as Gamification from '@/services/gamification';
 
 export default function FocusSessionScreen() {
   const { state, dispatch } = useAppContext();
   const { theme } = useTheme();
+  const { warning, success } = useToast();
   const router = useRouter();
   const [selectedDuration, setSelectedDuration] = useState(state.settings.defaultFocusDuration);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -73,17 +78,13 @@ export default function FocusSessionScreen() {
   };
 
   const endSessionEarly = () => {
-    Alert.alert(
+    warning(
       'End Session Early?',
       'Are you sure you want to end this focus session?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'End Session', 
-          style: 'destructive',
-          onPress: completeSession
-        }
-      ]
+      {
+        label: 'End Session',
+        onPress: completeSession
+      }
     );
   };
 
@@ -134,10 +135,13 @@ export default function FocusSessionScreen() {
     setSessionStartTime(null);
     setInterruptions(0);
 
-    Alert.alert(
+    success(
       'Session Complete!',
       `Great work! You focused for ${actualDuration} minutes and earned ${xpEarned} XP!`,
-      [{ text: 'OK', onPress: () => router.back() }]
+      {
+        label: 'OK',
+        onPress: () => router.back()
+      }
     );
   };
 
@@ -154,18 +158,19 @@ export default function FocusSessionScreen() {
   if (!isRunning && !sessionStartTime) {
     // Setup screen
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <View style={[styles.header, { 
-          backgroundColor: theme.cardBackground, 
-          borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-          shadowColor: theme.isDark ? '#000000' : '#000000'
-        }]}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="close" size={24} color={theme.textPrimary} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>Focus Session</Text>
-          <View style={{ width: 24 }} />
-        </View>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+          <View style={[styles.header, { 
+            backgroundColor: theme.cardBackground, 
+            borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+            shadowColor: theme.isDark ? '#000000' : '#000000'
+          }]}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Ionicons name="close" size={24} color={theme.textPrimary} />
+            </TouchableOpacity>
+            <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>Focus Session</Text>
+            <View style={{ width: 24 }} />
+          </View>
 
         <View style={styles.setupContent}>
           <Text style={[styles.setupTitle, { color: theme.textPrimary }]}>Choose Duration</Text>
@@ -251,86 +256,92 @@ export default function FocusSessionScreen() {
             </View>
           </View>
         </Modal>
-      </View>
+        </View>
+      </SafeAreaView>
     );
   }
 
   // Timer screen
   return (
-    <View style={[styles.timerContainer, { backgroundColor: theme.primaryAccent }]}>
-      <View style={styles.timerHeader}>
-        <TouchableOpacity onPress={endSessionEarly}>
-          <Ionicons name="close" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.timerHeaderTitle}>Focus Session</Text>
-        <TouchableOpacity onPress={addInterruption}>
-          <Ionicons name="alert-circle-outline" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.timerContent}>
-        {selectedTask && (
-          <Text style={styles.currentTask}>{selectedTask.title}</Text>
-        )}
-
-        <View style={styles.timerCircle}>
-          <Svg width="280" height="280" style={styles.progressRing}>
-            <Circle
-              cx="140"
-              cy="140"
-              r="120"
-              stroke="#FFFFFF"
-              strokeWidth="8"
-              fill="transparent"
-              opacity={0.3}
-            />
-            <Circle
-              cx="140"
-              cy="140"
-              r="120"
-              stroke="#FFFFFF"
-              strokeWidth="8"
-              fill="transparent"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              transform="rotate(-90 140 140)"
-            />
-          </Svg>
-          <View style={styles.timerText}>
-            <Text style={styles.timeDisplay}>{formatTime(timeLeft)}</Text>
-            <Text style={styles.durationLabel}>{selectedDuration} min session</Text>
-          </View>
-        </View>
-
-        <View style={styles.timerControls}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.controlButton}
-            onPress={isRunning ? pauseSession : resumeSession}
-          >
-            <Ionicons
-              name={isRunning ? 'pause' : 'play'}
-              size={32}
-              color="#FFFFFF"
-            />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.primaryAccent }]}>
+      <View style={[styles.timerContainer, { backgroundColor: theme.primaryAccent }]}>
+        <View style={styles.timerHeader}>
+          <TouchableOpacity onPress={endSessionEarly}>
+            <Ionicons name="close" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text style={styles.timerHeaderTitle}>Focus Session</Text>
+          <TouchableOpacity onPress={addInterruption}>
+            <Ionicons name="alert-circle-outline" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
-        {interruptions > 0 && (
-          <View style={styles.interruptionCounter}>
-            <Ionicons name="alert-circle" size={16} color={theme.secondaryAccent} />
-            <Text style={[styles.interruptionText, { color: theme.secondaryAccent }]}>
-              {interruptions} interruption{interruptions !== 1 ? 's' : ''}
-            </Text>
+        <View style={styles.timerContent}>
+          {selectedTask && (
+            <Text style={styles.currentTask}>{selectedTask.title}</Text>
+          )}
+
+          <View style={styles.timerCircle}>
+            <Svg width="280" height="280" style={styles.progressRing}>
+              <Circle
+                cx="140"
+                cy="140"
+                r="120"
+                stroke="#FFFFFF"
+                strokeWidth="8"
+                fill="transparent"
+                opacity={0.3}
+              />
+              <Circle
+                cx="140"
+                cy="140"
+                r="120"
+                stroke="#FFFFFF"
+                strokeWidth="8"
+                fill="transparent"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+                transform="rotate(-90 140 140)"
+              />
+            </Svg>
+            <View style={styles.timerText}>
+              <Text style={styles.timeDisplay}>{formatTime(timeLeft)}</Text>
+              <Text style={styles.durationLabel}>{selectedDuration} min session</Text>
+            </View>
           </View>
-        )}
+
+          <View style={styles.timerControls}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.controlButton}
+              onPress={isRunning ? pauseSession : resumeSession}
+            >
+              <Ionicons
+                name={isRunning ? 'pause' : 'play'}
+                size={32}
+                color="#FFFFFF"
+              />
+            </TouchableOpacity>
+          </View>
+
+          {interruptions > 0 && (
+            <View style={styles.interruptionCounter}>
+              <Ionicons name="alert-circle" size={16} color={theme.secondaryAccent} />
+              <Text style={[styles.interruptionText, { color: theme.secondaryAccent }]}>
+                {interruptions} interruption{interruptions !== 1 ? 's' : ''}
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 24,

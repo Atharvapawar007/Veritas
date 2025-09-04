@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, Switch } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useAppContext } from '@/context/AppContext';
 import { useTheme } from '@/context/ThemeContext';
-import { clearAllData } from '@/services/storage';
-import * as Gamification from '@/services/gamification';
+import { useToast } from '@/context/ToastContext';
+import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SettingsScreen() {
   const { state, dispatch } = useAppContext();
   const { theme, toggleTheme, isDark } = useTheme();
+  const { error, success } = useToast();
   const [settings, setSettings] = useState(state.settings);
 
   const updateSetting = (key: keyof typeof settings, value: any) => {
@@ -19,40 +19,22 @@ export default function SettingsScreen() {
   };
 
   const clearAllAppData = () => {
-    Alert.alert(
+    error(
       'Clear All Data',
       'This will permanently delete all your tasks, habits, focus sessions, and journal entries. This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear All Data',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await clearAllData();
-              // Reset state to initial values
-              dispatch({ type: 'LOAD_DATA', payload: {
-                tasks: [],
-                focusSessions: [],
-                habits: [],
-                dailyTop3: [],
-                journalEntries: [],
-                settings: {
-                  defaultFocusDuration: 25,
-                  shortBreakDuration: 5,
-                  longBreakDuration: 15,
-                  notificationsEnabled: true,
-                  remindersEnabled: true,
-                },
-                gamification: Gamification.createInitialGamificationState(),
-              }});
-              Alert.alert('Success', 'All data has been cleared.');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to clear data. Please try again.');
-            }
+      {
+        label: 'Clear All Data',
+        onPress: async () => {
+          try {
+            // Clear individual data arrays
+            dispatch({ type: 'SET_TASKS', payload: [] });
+            dispatch({ type: 'SET_HABITS', payload: [] });
+            success('Success', 'All data has been cleared.');
+          } catch (err) {
+            error('Error', 'Failed to clear data. Please try again.');
           }
         }
-      ]
+      }
     );
   };
 

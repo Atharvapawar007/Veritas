@@ -69,8 +69,35 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
                     : entry
                 )
               : [...habit.history, { date: action.payload.date, completed: true }];
-            
-            return { ...habit, history: updatedHistory };
+            // Recompute streak based on updated history
+            const completedDates = new Set(
+              updatedHistory.filter(h => h.completed).map(h => h.date)
+            );
+
+            const toDateStr = (d: Date) => d.toISOString().split('T')[0];
+            const today = new Date();
+            const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+            const countConsecutive = (start: Date): number => {
+              let count = 0;
+              let cursor = new Date(start);
+              while (completedDates.has(toDateStr(cursor))) {
+                count += 1;
+                cursor.setDate(cursor.getDate() - 1);
+              }
+              return count;
+            };
+
+            const hasToday = completedDates.has(toDateStr(today));
+            const hasYesterday = completedDates.has(toDateStr(yesterday));
+
+            const newStreak = hasToday
+              ? countConsecutive(today)
+              : hasYesterday
+                ? countConsecutive(yesterday)
+                : 0;
+
+            return { ...habit, history: updatedHistory, streak: newStreak };
           }
           return habit;
         }),

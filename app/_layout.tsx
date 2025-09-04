@@ -1,5 +1,7 @@
 import { AppProvider } from '@/context/AppContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { ToastProvider } from '@/context/ToastContext';
+import { ToastContainer } from '@/ui/ToastContainer';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { useState } from 'react';
@@ -14,7 +16,10 @@ export default function RootLayout() {
   if (showSplash || !fontsLoaded) {
     return (
       <ThemeProvider>
-        <SplashScreen onFinish={() => setShowSplash(false)} />
+        <ToastProvider>
+          <SplashScreen onFinish={() => setShowSplash(false)} />
+          <ToastContainer />
+        </ToastProvider>
       </ThemeProvider>
     );
   }
@@ -23,15 +28,18 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <AppProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            animation: 'none',
-            contentStyle: { backgroundColor: 'transparent' },
-          }}
-        />
-      </AppProvider>
+      <ToastProvider>
+        <AppProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              animation: 'none',
+              contentStyle: { backgroundColor: '#00000000' },
+            }}
+          />
+          <ToastContainer />
+        </AppProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

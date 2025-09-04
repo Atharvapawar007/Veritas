@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/context/ThemeContext';
 
 interface GrowthTreeProps {
@@ -72,13 +71,8 @@ export default function GrowthTree({ level, currentXP, nextLevelXP, streakCount 
   const progressPercentage = nextLevelXP > 0 ? (currentXP / nextLevelXP) * 100 : 100;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.cardBackground }]}>
-      <LinearGradient
-        colors={[theme.cardGradientStart, theme.cardGradientEnd]}
-        style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
+    <View style={styles.container}>
+      <View style={styles.gradient}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.textPrimary }]}>
             Growth Journey
@@ -193,20 +187,13 @@ export default function GrowthTree({ level, currentXP, nextLevelXP, streakCount 
           {getTreeStage() === 'young' && "Your consistency is paying off 🌳"}
           {getTreeStage() === 'mature' && "You've become a master of your habits! 🌲"}
         </Text>
-      </LinearGradient>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 16,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    overflow: 'hidden',
   },
   gradient: {
     padding: 20,

@@ -5,6 +5,7 @@ export interface Task {
   createdAt: Date;
   dueAt?: Date;
   status: 'pending' | 'completed' | 'cancelled';
+  completedAt?: Date;
 }
 
 export interface FocusSession {

@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, Animated, Dimensions, FlatList, Tou
 import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAppContext } from '@/context/AppContext';
 import { useTheme } from '@/context/ThemeContext';
 import { AnimatedCard } from '@/ui/AnimatedCard';
@@ -288,21 +289,23 @@ export default function AnalyticsScreen() {
           contentContainerStyle={styles.horizontalStats}
           style={styles.horizontalScrollContainer}
         >
-          <AnimatedCard style={[styles.compactStatCard, { 
-            backgroundColor: theme.cardBackground,
-            shadowColor: theme.isDark ? '#000000' : '#000000',
-            borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
-          }]}>
+          <LinearGradient
+            colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+            style={styles.compactStatCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
             <Ionicons name="timer-outline" size={24} color={theme.blue} />
             <Text style={[styles.compactStatNumber, { color: theme.textPrimary }]}>{formatTime(stats.todayFocusMinutes)}</Text>
             <Text style={[styles.compactStatLabel, { color: theme.textSecondary }]}>Today's Focus</Text>
-          </AnimatedCard>
+          </LinearGradient>
 
-          <AnimatedCard style={[styles.compactStatCard, { 
-            backgroundColor: theme.cardBackground,
-            shadowColor: theme.isDark ? '#000000' : '#000000',
-            borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
-          }]}>
+          <LinearGradient
+            colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+            style={styles.compactStatCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
             <Animated.View style={{ transform: [{ scale: streakAnimation }] }}>
               <Ionicons name="flame" size={24} color={theme.pink} />
             </Animated.View>
@@ -313,35 +316,38 @@ export default function AnalyticsScreen() {
             {stats.longestStreak >= 7 && (
               <Text style={[styles.streakBadge, { color: theme.pink }]}>🔥 On Fire!</Text>
             )}
-          </AnimatedCard>
+          </LinearGradient>
 
-          <AnimatedCard style={[styles.compactStatCard, { 
-            backgroundColor: theme.cardBackground,
-            shadowColor: theme.isDark ? '#000000' : '#000000',
-            borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
-          }]}>
+          <LinearGradient
+            colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+            style={styles.compactStatCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
             <Ionicons name="checkmark-circle-outline" size={24} color={theme.green} />
             <Text style={[styles.compactStatNumber, { color: theme.textPrimary }]}>{stats.habitSuccessPercentage}%</Text>
             <Text style={[styles.compactStatLabel, { color: theme.textSecondary }]}>Habit Success</Text>
-          </AnimatedCard>
+          </LinearGradient>
 
-          <AnimatedCard style={[styles.compactStatCard, { 
-            backgroundColor: theme.cardBackground,
-            shadowColor: theme.isDark ? '#000000' : '#000000',
-            borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
-          }]}>
+          <LinearGradient
+            colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+            style={styles.compactStatCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
             <Ionicons name="play-circle-outline" size={24} color={theme.teal} />
             <Text style={[styles.compactStatNumber, { color: theme.textPrimary }]}>{stats.focusSessionsCompleted}</Text>
             <Text style={[styles.compactStatLabel, { color: theme.textSecondary }]}>Sessions</Text>
-          </AnimatedCard>
+          </LinearGradient>
         </ScrollView>
 
         {/* Weekly Progress Chart */}
-        <AnimatedCard style={[styles.chartSection, { 
-          backgroundColor: theme.cardBackground,
-          shadowColor: theme.isDark ? '#000000' : '#000000',
-          borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
-        }]}>
+        <LinearGradient
+          colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+          style={styles.chartSection}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
           <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Weekly Focus Trend</Text>
           <View style={styles.chartContainer}>
             <LineChart 
@@ -358,26 +364,28 @@ export default function AnalyticsScreen() {
                 : "💪 Keep building momentum"}
             </Text>
           </View>
-        </AnimatedCard>
+        </LinearGradient>
 
         {/* Deep Work Heatmap Calendar */}
-        <AnimatedCard style={[styles.calendarCard, { 
-          backgroundColor: theme.cardBackground,
-          shadowColor: theme.isDark ? '#000000' : '#000000',
-          borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
-        }]}>
+        <LinearGradient
+          colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+          style={styles.calendarCard}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
           <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>Deep Work Calendar</Text>
           <HeatmapCalendar 
             focusSessions={state.focusSessions || []}
           />
-        </AnimatedCard>
+        </LinearGradient>
 
         {/* Weekly Trend Chart */}
-        <AnimatedCard style={[styles.trendCard, { 
-          backgroundColor: theme.cardBackground,
-          shadowColor: theme.isDark ? '#000000' : '#000000',
-          borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
-        }]}>
+        <LinearGradient
+          colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+          style={styles.trendCard}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
           <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>Weekly Progress</Text>
           <View style={styles.weeklyStatsContainer}>
             {weeklyTrend.slice(-7).map((day, index) => (
@@ -405,7 +413,7 @@ export default function AnalyticsScreen() {
                 : "💪 Keep building momentum"}
             </Text>
           </View>
-        </AnimatedCard>
+        </LinearGradient>
 
         {/* Badges & Achievements Section */}
         <View style={styles.badgesSection}>
@@ -442,11 +450,12 @@ export default function AnalyticsScreen() {
             contentContainerStyle={styles.horizontalInsights}
             style={styles.horizontalScrollContainer}
           >
-            <AnimatedCard style={[styles.insightCard, { 
-              backgroundColor: theme.cardBackground,
-              shadowColor: theme.isDark ? '#000000' : '#000000',
-              borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
-            }]}>
+            <LinearGradient
+              colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+              style={styles.insightCard}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
               <Ionicons name="trending-up-outline" size={24} color={theme.blue} />
               <Text style={[styles.insightTitle, { color: theme.textPrimary }]}>Focus Performance</Text>
               <Text style={[styles.insightText, { color: theme.textSecondary }]}>
@@ -457,13 +466,14 @@ export default function AnalyticsScreen() {
                   : "💪 Try to reach 2+ hours of focused work this week."
                 }
               </Text>
-            </AnimatedCard>
+            </LinearGradient>
 
-            <AnimatedCard style={[styles.insightCard, { 
-              backgroundColor: theme.cardBackground,
-              shadowColor: theme.isDark ? '#000000' : '#000000',
-              borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
-            }]}>
+            <LinearGradient
+              colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+              style={styles.insightCard}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
               <Ionicons name="checkmark-circle-outline" size={24} color={theme.green} />
               <Text style={[styles.insightTitle, { color: theme.textPrimary }]}>Habit Consistency</Text>
               <Text style={[styles.insightText, { color: theme.textSecondary }]}>
@@ -476,14 +486,15 @@ export default function AnalyticsScreen() {
                   : "🔥 Small daily actions lead to big results. Stay consistent."
                 }
               </Text>
-            </AnimatedCard>
+            </LinearGradient>
 
             {stats.longestStreak > 0 && (
-              <AnimatedCard style={[styles.insightCard, { 
-                backgroundColor: theme.cardBackground,
-                shadowColor: theme.isDark ? '#000000' : '#000000',
-                borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
-              }]}>
+              <LinearGradient
+                colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+                style={styles.insightCard}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
                 <Ionicons name="flame" size={24} color={theme.pink} />
                 <Text style={[styles.insightTitle, { color: theme.textPrimary }]}>Streak Power</Text>
                 <Text style={[styles.insightText, { color: theme.textSecondary }]}>
@@ -492,7 +503,7 @@ export default function AnalyticsScreen() {
                     : `💫 ${stats.longestStreak}-day streak is a great start. Keep going!`
                   }
                 </Text>
-              </AnimatedCard>
+              </LinearGradient>
             )}
           </ScrollView>
         </View>
@@ -630,7 +641,10 @@ export default function AnalyticsScreen() {
       case 'focus_sessions_before_7am': return `Complete ${value} focus sessions before 7 AM`;
       case 'weekend_activities': return `Complete ${value} weekend activities`;
       case 'daily_focus_hours': return `Focus for ${value} hours in a single day`;
-      case 'perfect_week': return 'Complete all habits for a full week';
+      case 'focus_daily_streak': return `Do at least one focus session each day for ${value} consecutive days`;
+      case 'consecutive_focus_hours': return `Complete a single focus session of at least ${value} hours`;
+      case 'journal_entries': return `Write ${value} journal entries`;
+      case 'perfect_week': return 'Complete all habits on each of the last 7 days';
       default: return 'Complete the required action';
     }
   }
@@ -1105,12 +1119,24 @@ const styles = StyleSheet.create({
   calendarCard: {
     marginHorizontal: 24,
     marginBottom: 20,
-    padding: 0,
+    padding: 24,
+    borderRadius: 20,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
   },
   trendCard: {
     marginHorizontal: 24,
     marginBottom: 20,
     padding: 24,
+    borderRadius: 20,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
   },
   weeklyStatsContainer: {
     flexDirection: 'row',

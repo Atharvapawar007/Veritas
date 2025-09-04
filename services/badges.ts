@@ -213,39 +213,39 @@ export const SEASONAL_BADGES: EnhancedBadge[] = [
 // PRODUCTIVITY MASTERY BADGES
 export const PRODUCTIVITY_BADGES: EnhancedBadge[] = [
   {
-    id: 'time_lord', name: 'Time Lord', description: 'Master of time management and scheduling',
-    icon: '⏰', category: 'special', tier: 'gold', rarity: 'epic', isUnlocked: false, isHidden: false,
-    unlockMessage: 'You have mastered the flow of time!', celebrationEffect: 'sparkles',
+    id: 'focus_pro', name: 'Focus Pro', description: 'Accumulate 25 total hours of focus time',
+    icon: '⏱️', category: 'focus', tier: 'gold', rarity: 'epic', isUnlocked: false, isHidden: false,
+    unlockMessage: '25 hours of deep focus achieved!', celebrationEffect: 'sparkles',
     visualDesign: { primaryColor: '#FF6B35', secondaryColor: '#FFD700', gradient: ['#FF6B35', '#FFD700'],
-      shape: 'hexagon', borderColor: '#DAA520', glowColor: '#FF6B35', shadowIntensity: 0.5, iconSymbol: '⏰' },
-    unlockCriteria: { type: 'daily_planning_streak', value: 14 }
+      shape: 'hexagon', borderColor: '#DAA520', glowColor: '#FF6B35', shadowIntensity: 0.5, iconSymbol: '⏱️' },
+    unlockCriteria: { type: 'total_focus_hours', value: 25 }
   },
   {
-    id: 'zen_master', name: 'Zen Master', description: 'Found inner peace through mindful productivity',
-    icon: '🧘', category: 'special', tier: 'diamond', rarity: 'legendary', isUnlocked: false, isHidden: false,
-    unlockMessage: 'Inner peace achieved through mindful work!', celebrationEffect: 'glow',
+    id: 'focus_master', name: 'Focus Master', description: 'Accumulate 100 total hours of focus time',
+    icon: '🧘', category: 'focus', tier: 'diamond', rarity: 'legendary', isUnlocked: false, isHidden: false,
+    unlockMessage: '100 hours of focused work — incredible!', celebrationEffect: 'glow',
     visualDesign: { primaryColor: '#9370DB', secondaryColor: '#DDA0DD', gradient: ['#9370DB', '#DDA0DD'],
       shape: 'circle', borderColor: '#4B0082', glowColor: '#9370DB', shadowIntensity: 0.7, iconSymbol: '🧘' },
-    unlockCriteria: { type: 'meditation_sessions', value: 30 }
+    unlockCriteria: { type: 'total_focus_hours', value: 100 }
   },
   {
-    id: 'task_crusher', name: 'Task Crusher', description: 'Demolished your to-do list with ruthless efficiency',
-    icon: '💪', category: 'special', tier: 'silver', rarity: 'rare', isUnlocked: false, isHidden: false,
-    unlockMessage: 'No task can stand against your might!', celebrationEffect: 'bounce',
+    id: 'day_crusher', name: 'Day Crusher', description: 'Focus for 6 hours in a single day',
+    icon: '💥', category: 'focus', tier: 'gold', rarity: 'rare', isUnlocked: false, isHidden: false,
+    unlockMessage: 'Monster day! 6h of focus in one day.', celebrationEffect: 'bounce',
     visualDesign: { primaryColor: '#FF4500', secondaryColor: '#FF8C00', gradient: ['#FF4500', '#FF8C00'],
-      shape: 'shield', borderColor: '#C0C0C0', glowColor: '#FF4500', shadowIntensity: 0.4, iconSymbol: '💪' },
-    unlockCriteria: { type: 'tasks_completed_single_day', value: 20 }
+      shape: 'shield', borderColor: '#C0C0C0', glowColor: '#FF4500', shadowIntensity: 0.4, iconSymbol: '💥' },
+    unlockCriteria: { type: 'daily_focus_hours', value: 6, additionalConditions: { singleDay: true } }
   },
   {
-    id: 'efficiency_expert', name: 'Efficiency Expert', description: 'Optimized your workflow to perfection',
-    icon: '⚡', category: 'special', tier: 'gold', rarity: 'rare', isUnlocked: false, isHidden: false,
-    unlockMessage: 'Maximum efficiency achieved!', celebrationEffect: 'sparkles',
+    id: 'week_grinder', name: 'Week Grinder', description: 'Do at least one focus session every day for 7 days',
+    icon: '📆', category: 'focus', tier: 'silver', rarity: 'rare', isUnlocked: false, isHidden: false,
+    unlockMessage: '7-day daily focus streak — keep going!', celebrationEffect: 'sparkles',
     visualDesign: { primaryColor: '#FFD700', secondaryColor: '#FFA500', gradient: ['#FFD700', '#FFA500'],
-      shape: 'star', borderColor: '#DAA520', glowColor: '#FFD700', shadowIntensity: 0.5, iconSymbol: '⚡' },
-    unlockCriteria: { type: 'average_session_efficiency', value: 90 }
+      shape: 'star', borderColor: '#DAA520', glowColor: '#FFD700', shadowIntensity: 0.5, iconSymbol: '📆' },
+    unlockCriteria: { type: 'focus_daily_streak', value: 7 }
   },
   {
-    id: 'flow_state', name: 'Flow State', description: 'Entered the legendary zone of peak performance',
+    id: 'flow_state', name: 'Flow State', description: 'Complete a single focus session lasting 6 hours',
     icon: '🌊', category: 'focus', tier: 'diamond', rarity: 'legendary', isUnlocked: false, isHidden: false,
     unlockMessage: 'You have entered the flow!', celebrationEffect: 'fireworks',
     visualDesign: { primaryColor: '#4682B4', secondaryColor: '#87CEEB', gradient: ['#4682B4', '#87CEEB'],
@@ -257,84 +257,84 @@ export const PRODUCTIVITY_BADGES: EnhancedBadge[] = [
 // WELLNESS & BALANCE BADGES
 export const WELLNESS_BADGES: EnhancedBadge[] = [
   {
-    id: 'wellness_warrior', name: 'Wellness Warrior', description: 'Balanced productivity with self-care',
-    icon: '🌱', category: 'special', tier: 'gold', rarity: 'rare', isUnlocked: false, isHidden: false,
-    unlockMessage: 'Balance is the key to sustainable success!', celebrationEffect: 'glow',
-    visualDesign: { primaryColor: '#32CD32', secondaryColor: '#90EE90', gradient: ['#32CD32', '#90EE90'],
-      shape: 'circle', borderColor: '#DAA520', glowColor: '#32CD32', shadowIntensity: 0.5, iconSymbol: '🌱' },
-    unlockCriteria: { type: 'wellness_activities', value: 50 }
-  },
-  {
-    id: 'sleep_champion', name: 'Sleep Champion', description: 'Maintained healthy sleep patterns for peak performance',
-    icon: '😴', category: 'special', tier: 'silver', rarity: 'rare', isUnlocked: false, isHidden: false,
-    unlockMessage: 'Rest is the foundation of greatness!', celebrationEffect: 'sparkles',
-    visualDesign: { primaryColor: '#4B0082', secondaryColor: '#9370DB', gradient: ['#4B0082', '#9370DB'],
-      shape: 'circle', borderColor: '#C0C0C0', glowColor: '#4B0082', shadowIntensity: 0.4, iconSymbol: '😴' },
-    unlockCriteria: { type: 'consistent_sleep_schedule', value: 21 }
-  },
-  {
-    id: 'hydration_hero', name: 'Hydration Hero', description: 'Kept your brain fueled with proper hydration',
-    icon: '💧', category: 'special', tier: 'bronze', rarity: 'common', isUnlocked: false, isHidden: false,
-    unlockMessage: 'Your brain thanks you for the hydration!', celebrationEffect: 'bounce',
+    id: 'power_hour', name: 'Power Hour', description: 'Focus for 1 hour in a single day',
+    icon: '⏳', category: 'focus', tier: 'bronze', rarity: 'common', isUnlocked: false, isHidden: false,
+    unlockMessage: 'Solid hour of deep work — nice!', celebrationEffect: 'bounce',
     visualDesign: { primaryColor: '#00BFFF', secondaryColor: '#87CEEB', gradient: ['#00BFFF', '#87CEEB'],
-      shape: 'circle', borderColor: '#CD853F', glowColor: '#00BFFF', shadowIntensity: 0.3, iconSymbol: '💧' },
-    unlockCriteria: { type: 'water_intake_goals', value: 30 }
+      shape: 'circle', borderColor: '#CD853F', glowColor: '#00BFFF', shadowIntensity: 0.3, iconSymbol: '⏳' },
+    unlockCriteria: { type: 'daily_focus_hours', value: 1, additionalConditions: { singleDay: true } }
+  },
+  {
+    id: 'daily_driver', name: 'Daily Driver', description: 'Do at least one focus session every day for 3 days',
+    icon: '🚗', category: 'focus', tier: 'silver', rarity: 'common', isUnlocked: false, isHidden: false,
+    unlockMessage: '3-day daily focus streak started!', celebrationEffect: 'glow',
+    visualDesign: { primaryColor: '#4B0082', secondaryColor: '#9370DB', gradient: ['#4B0082', '#9370DB'],
+      shape: 'circle', borderColor: '#C0C0C0', glowColor: '#4B0082', shadowIntensity: 0.4, iconSymbol: '🚗' },
+    unlockCriteria: { type: 'focus_daily_streak', value: 3 }
+  },
+  {
+    id: 'habit_hustler', name: 'Habit Hustler', description: 'Maintain any habit streak for 14 days',
+    icon: '🏅', category: 'streak', tier: 'gold', rarity: 'rare', isUnlocked: false, isHidden: false,
+    unlockMessage: '14-day habit streak — great momentum!', celebrationEffect: 'sparkles',
+    visualDesign: { primaryColor: '#32CD32', secondaryColor: '#90EE90', gradient: ['#32CD32', '#90EE90'],
+      shape: 'circle', borderColor: '#DAA520', glowColor: '#32CD32', shadowIntensity: 0.5, iconSymbol: '🏅' },
+    unlockCriteria: { type: 'daily_streak', value: 14 }
   }
 ];
 
 // CREATIVITY & INNOVATION BADGES
 export const CREATIVITY_BADGES: EnhancedBadge[] = [
   {
-    id: 'creative_genius', name: 'Creative Genius', description: 'Unleashed your creative potential',
-    icon: '🎨', category: 'special', tier: 'gold', rarity: 'epic', isUnlocked: false, isHidden: false,
-    unlockMessage: 'Your creativity knows no bounds!', celebrationEffect: 'confetti',
-    visualDesign: { primaryColor: '#FF69B4', secondaryColor: '#FFB6C1', gradient: ['#FF69B4', '#FFB6C1'],
-      shape: 'star', borderColor: '#DAA520', glowColor: '#FF69B4', shadowIntensity: 0.5, iconSymbol: '🎨' },
-    unlockCriteria: { type: 'creative_sessions', value: 25 }
+    id: 'deep_drift', name: 'Deep Drift', description: 'Complete a single 2-hour focus session',
+    icon: '🌊', category: 'focus', tier: 'silver', rarity: 'rare', isUnlocked: false, isHidden: false,
+    unlockMessage: '2h single-session depth — smooth!', celebrationEffect: 'glow',
+    visualDesign: { primaryColor: '#9932CC', secondaryColor: '#DA70D6', gradient: ['#9932CC', '#DA70D6'],
+      shape: 'hexagon', borderColor: '#C0C0C0', glowColor: '#9932CC', shadowIntensity: 0.4, iconSymbol: '🌊' },
+    unlockCriteria: { type: 'consecutive_focus_hours', value: 2 }
   },
   {
-    id: 'innovation_pioneer', name: 'Innovation Pioneer', description: 'Pioneered new ways of thinking and working',
-    icon: '💡', category: 'special', tier: 'diamond', rarity: 'legendary', isUnlocked: false, isHidden: false,
-    unlockMessage: 'Innovation is your superpower!', celebrationEffect: 'fireworks',
+    id: 'creative_grind', name: 'Creative Grind', description: 'Complete 50 focus sessions',
+    icon: '🎨', category: 'focus', tier: 'gold', rarity: 'epic', isUnlocked: false, isHidden: false,
+    unlockMessage: '50 sessions — your craft is growing!', celebrationEffect: 'confetti',
     visualDesign: { primaryColor: '#FFD700', secondaryColor: '#FFA500', gradient: ['#FFD700', '#FFA500'],
-      shape: 'diamond', borderColor: '#4B0082', glowColor: '#FFD700', shadowIntensity: 0.7, iconSymbol: '💡' },
-    unlockCriteria: { type: 'breakthrough_moments', value: 10 }
+      shape: 'diamond', borderColor: '#4B0082', glowColor: '#FFD700', shadowIntensity: 0.7, iconSymbol: '🎨' },
+    unlockCriteria: { type: 'focus_sessions_completed', value: 50 }
   },
   {
-    id: 'problem_solver', name: 'Problem Solver', description: 'Tackled complex challenges with determination',
-    icon: '🧩', category: 'special', tier: 'silver', rarity: 'rare', isUnlocked: false, isHidden: false,
-    unlockMessage: 'No problem is too complex for you!', celebrationEffect: 'sparkles',
+    id: 'problem_cracker', name: 'Problem Cracker', description: 'Accumulate 10 total hours of focus time',
+    icon: '🧩', category: 'focus', tier: 'silver', rarity: 'rare', isUnlocked: false, isHidden: false,
+    unlockMessage: '10 hours of effort cracked it!', celebrationEffect: 'sparkles',
     visualDesign: { primaryColor: '#9932CC', secondaryColor: '#DA70D6', gradient: ['#9932CC', '#DA70D6'],
       shape: 'hexagon', borderColor: '#C0C0C0', glowColor: '#9932CC', shadowIntensity: 0.4, iconSymbol: '🧩' },
-    unlockCriteria: { type: 'complex_tasks_completed', value: 15 }
+    unlockCriteria: { type: 'total_focus_hours', value: 10 }
   }
 ];
 
 // SOCIAL & COLLABORATION BADGES
 export const SOCIAL_BADGES: EnhancedBadge[] = [
   {
-    id: 'team_player', name: 'Team Player', description: 'Excelled in collaborative environments',
-    icon: '🤝', category: 'special', tier: 'gold', rarity: 'rare', isUnlocked: false, isHidden: false,
-    unlockMessage: 'Together we achieve more!', celebrationEffect: 'confetti',
+    id: 'session_enthusiast', name: 'Session Enthusiast', description: 'Complete 50 focus sessions',
+    icon: '🤝', category: 'focus', tier: 'gold', rarity: 'rare', isUnlocked: false, isHidden: false,
+    unlockMessage: '50 sessions — steady and social!', celebrationEffect: 'confetti',
     visualDesign: { primaryColor: '#32CD32', secondaryColor: '#90EE90', gradient: ['#32CD32', '#90EE90'],
       shape: 'shield', borderColor: '#DAA520', glowColor: '#32CD32', shadowIntensity: 0.5, iconSymbol: '🤝' },
-    unlockCriteria: { type: 'collaborative_sessions', value: 20 }
+    unlockCriteria: { type: 'focus_sessions_completed', value: 50 }
   },
   {
-    id: 'mentor', name: 'Mentor', description: 'Guided others on their productivity journey',
-    icon: '👨‍🏫', category: 'special', tier: 'diamond', rarity: 'epic', isUnlocked: false, isHidden: false,
-    unlockMessage: 'Teaching others multiplies your impact!', celebrationEffect: 'glow',
+    id: 'session_veteran', name: 'Session Veteran', description: 'Complete 200 focus sessions',
+    icon: '👨‍🏫', category: 'focus', tier: 'diamond', rarity: 'epic', isUnlocked: false, isHidden: false,
+    unlockMessage: '200 sessions — true veteran!', celebrationEffect: 'glow',
     visualDesign: { primaryColor: '#4169E1', secondaryColor: '#87CEEB', gradient: ['#4169E1', '#87CEEB'],
       shape: 'star', borderColor: '#4B0082', glowColor: '#4169E1', shadowIntensity: 0.7, iconSymbol: '👨‍🏫' },
-    unlockCriteria: { type: 'mentoring_sessions', value: 10 }
+    unlockCriteria: { type: 'focus_sessions_completed', value: 200 }
   },
   {
-    id: 'community_builder', name: 'Community Builder', description: 'Built connections and fostered growth',
-    icon: '🏘️', category: 'special', tier: 'gold', rarity: 'epic', isUnlocked: false, isHidden: false,
-    unlockMessage: 'You build bridges that connect hearts!', celebrationEffect: 'sparkles',
+    id: 'daily_doer', name: 'Daily Doer', description: 'Do at least one focus session every day for 14 days',
+    icon: '🏘️', category: 'focus', tier: 'gold', rarity: 'epic', isUnlocked: false, isHidden: false,
+    unlockMessage: '14-day daily focus streak!', celebrationEffect: 'sparkles',
     visualDesign: { primaryColor: '#FF6347', secondaryColor: '#FFB347', gradient: ['#FF6347', '#FFB347'],
       shape: 'hexagon', borderColor: '#DAA520', glowColor: '#FF6347', shadowIntensity: 0.5, iconSymbol: '🏘️' },
-    unlockCriteria: { type: 'community_interactions', value: 100 }
+    unlockCriteria: { type: 'focus_daily_streak', value: 14 }
   }
 ];
 
@@ -365,20 +365,20 @@ export const MILESTONE_BADGES: EnhancedBadge[] = [
     unlockCriteria: { type: 'daily_streak', value: 365 }
   },
   {
-    id: 'knowledge_seeker', name: 'Knowledge Seeker', description: 'Dedicated time to learning and growth',
+    id: 'journal_novice', name: 'Journal Novice', description: 'Write 10 journal entries',
     icon: '📚', category: 'special', tier: 'silver', rarity: 'rare', isUnlocked: false, isHidden: false,
-    unlockMessage: 'Knowledge is the greatest treasure!', celebrationEffect: 'sparkles',
+    unlockMessage: '10 reflections penned!', celebrationEffect: 'sparkles',
     visualDesign: { primaryColor: '#4169E1', secondaryColor: '#87CEEB', gradient: ['#4169E1', '#87CEEB'],
       shape: 'circle', borderColor: '#C0C0C0', glowColor: '#4169E1', shadowIntensity: 0.4, iconSymbol: '📚' },
-    unlockCriteria: { type: 'learning_sessions', value: 40 }
+    unlockCriteria: { type: 'journal_entries', value: 10 }
   },
   {
-    id: 'reflection_master', name: 'Reflection Master', description: 'Mastered the art of self-reflection',
+    id: 'journal_master', name: 'Journal Master', description: 'Write 50 journal entries',
     icon: '🪞', category: 'special', tier: 'gold', rarity: 'rare', isUnlocked: false, isHidden: false,
-    unlockMessage: 'Self-awareness is your greatest strength!', celebrationEffect: 'glow',
+    unlockMessage: '50 reflections — mastery!', celebrationEffect: 'glow',
     visualDesign: { primaryColor: '#9370DB', secondaryColor: '#DDA0DD', gradient: ['#9370DB', '#DDA0DD'],
       shape: 'circle', borderColor: '#DAA520', glowColor: '#9370DB', shadowIntensity: 0.5, iconSymbol: '🪞' },
-    unlockCriteria: { type: 'reflection_entries', value: 50 }
+    unlockCriteria: { type: 'journal_entries', value: 50 }
   }
 ];
 
@@ -393,36 +393,20 @@ export const HIDDEN_BADGES: EnhancedBadge[] = [
     unlockCriteria: { type: 'journal_entries_with_keyword', value: 5, additionalConditions: { keyword: 'truth' } }
   },
   {
-    id: 'phoenix_rising', name: 'Phoenix Rising', description: 'You rose from the ashes of a broken streak',
-    icon: '🔥', category: 'hidden', tier: 'gold', rarity: 'epic', isUnlocked: false, isHidden: true,
-    unlockMessage: 'From ashes, you rise stronger!', celebrationEffect: 'fireworks',
-    visualDesign: { primaryColor: '#DC143C', secondaryColor: '#FF4500', gradient: ['#DC143C', '#FF4500'],
-      shape: 'star', borderColor: '#DAA520', glowColor: '#DC143C', shadowIntensity: 0.5, iconSymbol: '🔥' },
-    unlockCriteria: { type: 'streak_recovery', value: 1 }
-  },
-  {
-    id: 'midnight_scholar', name: 'Midnight Scholar', description: 'Found wisdom in the quiet hours of night',
+    id: 'night_owl_hidden', name: 'Night Owl (Hidden)', description: 'Complete 20 focus sessions after midnight',
     icon: '🌙', category: 'hidden', tier: 'silver', rarity: 'epic', isUnlocked: false, isHidden: true,
-    unlockMessage: 'The night reveals its secrets to you!', celebrationEffect: 'glow',
+    unlockMessage: 'The quiet nights fuel your focus!', celebrationEffect: 'glow',
     visualDesign: { primaryColor: '#2F4F4F', secondaryColor: '#708090', gradient: ['#2F4F4F', '#708090'],
       shape: 'circle', borderColor: '#C0C0C0', glowColor: '#2F4F4F', shadowIntensity: 0.4, iconSymbol: '🌙' },
-    unlockCriteria: { type: 'late_night_sessions', value: 20 }
+    unlockCriteria: { type: 'focus_sessions_after_midnight', value: 20 }
   },
   {
-    id: 'digital_detox', name: 'Digital Detox', description: 'Mastered the art of disconnecting to reconnect',
-    icon: '📵', category: 'hidden', tier: 'gold', rarity: 'rare', isUnlocked: false, isHidden: true,
-    unlockMessage: 'True connection comes from disconnection!', celebrationEffect: 'sparkles',
-    visualDesign: { primaryColor: '#32CD32', secondaryColor: '#90EE90', gradient: ['#32CD32', '#90EE90'],
-      shape: 'shield', borderColor: '#DAA520', glowColor: '#32CD32', shadowIntensity: 0.5, iconSymbol: '📵' },
-    unlockCriteria: { type: 'offline_focus_sessions', value: 15 }
-  },
-  {
-    id: 'secret_keeper', name: 'Secret Keeper', description: 'Unlocked the hidden potential within',
-    icon: '🗝️', category: 'hidden', tier: 'diamond', rarity: 'legendary', isUnlocked: false, isHidden: true,
-    unlockMessage: 'You hold the key to infinite possibilities!', celebrationEffect: 'fireworks',
+    id: 'streak_phantom', name: 'Streak Phantom', description: 'Maintain a 21-day habit streak',
+    icon: '🕯️', category: 'hidden', tier: 'gold', rarity: 'rare', isUnlocked: false, isHidden: true,
+    unlockMessage: '21-day streak shrouded in mystery!', celebrationEffect: 'sparkles',
     visualDesign: { primaryColor: '#FFD700', secondaryColor: '#FFA500', gradient: ['#FFD700', '#FFA500'],
-      shape: 'diamond', borderColor: '#4B0082', glowColor: '#FFD700', shadowIntensity: 0.7, iconSymbol: '🗝️' },
-    unlockCriteria: { type: 'all_categories_mastered', value: 1 }
+      shape: 'diamond', borderColor: '#4B0082', glowColor: '#FFD700', shadowIntensity: 0.7, iconSymbol: '🕯️' },
+    unlockCriteria: { type: 'daily_streak', value: 21 }
   }
 ];
 
@@ -500,16 +484,116 @@ export const checkEnhancedBadgeUnlocks = (
           shouldUnlock = Object.values(dailyHours).some((hours: any) => hours >= value);
         }
         break;
-      case 'perfect_week':
-        // Check for a perfect week of habit completion
-        const today = new Date();
-        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const weekHabits = habits.filter((habit: any) => 
-          habit.history.some((entry: any) => 
-            new Date(entry.date) >= weekAgo && entry.completed
-          )
+      case 'focus_daily_streak': {
+        // Count consecutive days (ending today or yesterday) with at least one focus session
+        const toDateStr = (d: Date) => d.toISOString().split('T')[0];
+        const datesWithSession = new Set(
+          (focusSessions || []).map(s => new Date(s.startTime)).map((d: Date) => toDateStr(new Date(d.getFullYear(), d.getMonth(), d.getDate())))
         );
-        shouldUnlock = weekHabits.length === habits.length && habits.length > 0;
+        const today = new Date();
+        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const countFrom = (start: Date) => {
+          let count = 0;
+          const cursor = new Date(start);
+          while (datesWithSession.has(toDateStr(cursor))) {
+            count += 1;
+            cursor.setDate(cursor.getDate() - 1);
+          }
+          return count;
+        };
+        const hasToday = datesWithSession.has(toDateStr(today));
+        const hasYesterday = datesWithSession.has(toDateStr(yesterday));
+        const focusStreak = hasToday ? countFrom(today) : (hasYesterday ? countFrom(yesterday) : 0);
+        shouldUnlock = focusStreak >= value;
+        break;
+      }
+      case 'consecutive_focus_hours': {
+        // Any single session lasting at least 'value' hours
+        const meets = (focusSessions || []).some(s => (s.actualDuration || 0) >= value * 60);
+        shouldUnlock = meets;
+        break;
+      }
+      case 'january_streak': {
+        // Look for a consecutive-day streak within January (any year)
+        const toDateStr = (d: Date) => d.toISOString().split('T')[0];
+        // Group sessions by year for January
+        const sessionsByYear = new Map<number, Set<string>>();
+        for (const s of focusSessions || []) {
+          const d = new Date(s.startTime);
+          if (d.getMonth() === 0) { // January
+            const y = d.getFullYear();
+            const dateKey = toDateStr(new Date(y, d.getMonth(), d.getDate()));
+            if (!sessionsByYear.has(y)) sessionsByYear.set(y, new Set<string>());
+            sessionsByYear.get(y)!.add(dateKey);
+          }
+        }
+        const longestJanStreak = Array.from(sessionsByYear.values()).reduce((max, dates) => {
+          // iterate through January days and compute max consecutive
+          // Build sorted array of dates in January for that year
+          const sorted = Array.from(dates).sort();
+          if (sorted.length === 0) return max;
+          // Use a set for O(1) lookup, then greedily count sequences
+          const set = dates;
+          // Determine the year from any element
+          const sample = new Date(sorted[0]);
+          const janStart = new Date(sample.getFullYear(), 0, 1);
+          const janEnd = new Date(sample.getFullYear(), 0, 31);
+          let best = 0;
+          for (let day = new Date(janStart); day <= janEnd; day.setDate(day.getDate() + 1)) {
+            // Start counting only when the previous day did not have a session
+            const prev = new Date(day);
+            prev.setDate(prev.getDate() - 1);
+            if (set.has(toDateStr(prev))) continue;
+            // Count forward
+            let count = 0;
+            const cursor = new Date(day);
+            while (cursor <= janEnd && set.has(toDateStr(cursor))) {
+              count += 1;
+              cursor.setDate(cursor.getDate() + 1);
+            }
+            if (count > best) best = count;
+          }
+          return Math.max(max, best);
+        }, 0);
+        shouldUnlock = longestJanStreak >= value;
+        break;
+      }
+      case 'spring_activities': {
+        // Count sessions in March, April, May (months 2..4)
+        const springCount = (focusSessions || []).filter(s => {
+          const m = new Date(s.startTime).getMonth();
+          return m >= 2 && m <= 4;
+        }).length;
+        shouldUnlock = springCount >= value;
+        break;
+      }
+      case 'habits_created': {
+        // Interpret as total number of habits present
+        shouldUnlock = (habits || []).length >= value;
+        break;
+      }
+      case 'perfect_week':
+        // Require all habits to be completed on each of the last 7 days (including today)
+        {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const last7Dates: string[] = [];
+          for (let i = 0; i < 7; i++) {
+            const d = new Date(today);
+            d.setDate(today.getDate() - i);
+            last7Dates.push(d.toISOString().split('T')[0]);
+          }
+
+          const allHabitsPerfect = habits.length > 0 && habits.every((habit: any) => {
+            const history = Array.isArray(habit.history) ? habit.history : [];
+            return last7Dates.every(dateStr => {
+              const entry = history.find((e: any) => e.date === dateStr);
+              return !!(entry && entry.completed === true);
+            });
+          });
+
+          shouldUnlock = allHabitsPerfect;
+        }
         break;
       case 'journal_entries_with_keyword':
         if (additionalConditions?.keyword) {
@@ -521,6 +605,11 @@ export const checkEnhancedBadgeUnlocks = (
           shouldUnlock = keywordEntries.length >= value;
         }
         break;
+      case 'journal_entries': {
+        const total = Array.isArray(journalEntries) ? journalEntries.length : 0;
+        shouldUnlock = total >= value;
+        break;
+      }
     }
 
     if (shouldUnlock) {

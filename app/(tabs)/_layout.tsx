@@ -8,14 +8,14 @@ export default function TabLayout() {
 
   return (
     <Tabs
-      sceneContainerStyle={{ backgroundColor: 'transparent' }}
       screenOptions={{
         headerShown: false,
         animation: 'none',
+        sceneStyle: { backgroundColor: theme.background },
         tabBarActiveTintColor: theme.isDark ? '#60A5FA' : '#007AFF',
         tabBarInactiveTintColor: theme.isDark ? '#64748B' : '#8E8E93',
         tabBarStyle: {
-          backgroundColor: theme.isDark ? '#1E293B' : '#FFFFFF',
+          backgroundColor: theme.isDark ? '#1C1C1E' : '#FFFFFF',
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,

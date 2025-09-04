@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Modal, Pressable } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Modal, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useAppContext } from '@/context/AppContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { Habit, HabitEntry } from '@/types';
 import { AnimatedCard, AnimatedRow } from '@/ui/AnimatedCard';
 import ProgressRing from '@/ui/ProgressRing';
@@ -14,6 +16,7 @@ import * as Gamification from '@/services/gamification';
 export default function HabitsScreen() {
   const { state, dispatch } = useAppContext();
   const { theme } = useTheme();
+  const { error, success } = useToast();
   const [showAddModal, setShowAddModal] = useState(false);
   const [newHabitTitle, setNewHabitTitle] = useState('');
   const [newHabitGoal, setNewHabitGoal] = useState('');
@@ -22,7 +25,7 @@ export default function HabitsScreen() {
 
   const addHabit = () => {
     if (!newHabitTitle.trim() || !newHabitGoal.trim()) {
-      Alert.alert('Error', 'Please fill in all fields');
+      error('Error', 'Please fill in all fields');
       return;
     }
 
@@ -93,17 +96,13 @@ export default function HabitsScreen() {
   };
 
   const deleteHabit = (habitId: string) => {
-    Alert.alert(
+    error(
       'Delete Habit',
       'Are you sure you want to delete this habit? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: () => dispatch({ type: 'DELETE_HABIT', payload: habitId })
-        }
-      ]
+      {
+        label: 'Delete',
+        onPress: () => dispatch({ type: 'DELETE_HABIT', payload: habitId })
+      }
     );
   };
 
@@ -168,17 +167,11 @@ export default function HabitsScreen() {
 
       {state.habits.length === 0 ? (
         <View style={styles.emptyWrapper}>
-          <AnimatedCard
-            style={[
-              styles.emptyState,
-              {
-                backgroundColor: theme.cardBackground,
-                borderColor: theme.isDark
-                  ? 'rgba(255, 255, 255, 0.1)'
-                  : 'rgba(0, 0, 0, 0.05)',
-                shadowColor: theme.isDark ? '#000000' : '#000000',
-              },
-            ]}
+          <LinearGradient
+            colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+            style={styles.emptyState}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
           >
             <Ionicons
               name="checkmark-circle-outline"
@@ -193,7 +186,7 @@ export default function HabitsScreen() {
             >
               <Text style={styles.emptyButtonText}>Add Your First Habit</Text>
             </TouchableOpacity>
-          </AnimatedCard>
+          </LinearGradient>
         </View>
       ) : (
         <View style={styles.habitsList}>
@@ -202,11 +195,13 @@ export default function HabitsScreen() {
             const weeklyProgress = getWeeklyProgress(habit);
             
             return (
-              <AnimatedCard key={habit.id} style={[styles.habitCard, { 
-                backgroundColor: theme.cardBackground,
-                borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-                shadowColor: theme.isDark ? '#000000' : '#000000'
-              }]}> 
+              <LinearGradient
+                key={habit.id}
+                colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+                style={styles.habitCard}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              > 
                 <View style={styles.habitHeader}>
                   <TouchableOpacity
                     style={styles.habitCheckbox}
@@ -260,7 +255,7 @@ export default function HabitsScreen() {
                     </View>
                   </View>
                 </View>
-              </AnimatedCard>
+              </LinearGradient>
             );
           })}
         </View>

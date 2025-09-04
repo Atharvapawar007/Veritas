@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAppContext } from '@/context/AppContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { Task } from '@/types';
 import { AnimatedCard, AnimatedRow } from '@/ui/AnimatedCard';
 
 export default function InboxScreen() {
   const { state, dispatch } = useAppContext();
   const { theme } = useTheme();
+  const { error, success } = useToast();
   const [title, setTitle] = useState('');
   const [note, setNote] = useState('');
 
   const addTask = () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Please enter a task title');
+      error('Error', 'Please enter a task title');
       return;
     }
 
@@ -30,7 +33,7 @@ export default function InboxScreen() {
     dispatch({ type: 'ADD_TASK', payload: newTask });
     setTitle('');
     setNote('');
-    Alert.alert('Success', 'Task added to inbox');
+    success('Success', 'Task added to inbox');
   };
 
   const updateTaskStatus = (taskId: string, status: Task['status']) => {
@@ -38,23 +41,23 @@ export default function InboxScreen() {
     if (task) {
       dispatch({ 
         type: 'UPDATE_TASK', 
-        payload: { ...task, status } 
+        payload: { 
+          ...task, 
+          status,
+          completedAt: status === 'completed' ? new Date() : undefined,
+        } 
       });
     }
   };
 
   const deleteTask = (taskId: string) => {
-    Alert.alert(
+    error(
       'Delete Task',
       'Are you sure you want to delete this task?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: () => dispatch({ type: 'DELETE_TASK', payload: taskId })
-        }
-      ]
+      {
+        label: 'Delete',
+        onPress: () => dispatch({ type: 'DELETE_TASK', payload: taskId })
+      }
     );
   };
 
@@ -68,11 +71,12 @@ export default function InboxScreen() {
         contentContainerStyle={styles.scrollContent}
       > 
       {/* Quick Capture Form */}
-      <AnimatedCard style={[styles.captureSection, { 
-        backgroundColor: theme.cardBackground,
-        borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-        shadowColor: theme.isDark ? '#000000' : '#000000'
-      }]}> 
+      <LinearGradient
+        colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+        style={styles.captureSection}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      > 
         <Text style={[styles.sectionTitleCentered, { color: theme.textPrimary }]}>Quick Capture</Text>
         
         <TextInput
@@ -98,14 +102,15 @@ export default function InboxScreen() {
           <Ionicons name="add" size={20} color="#FFFFFF" />
           <Text style={styles.addButtonText}>Add Task</Text>
         </TouchableOpacity>
-      </AnimatedCard>
+      </LinearGradient>
 
       {/* Pending Tasks */}
-      <AnimatedCard style={[styles.section, { 
-        backgroundColor: theme.cardBackground,
-        borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-        shadowColor: theme.isDark ? '#000000' : '#000000'
-      }]}> 
+      <LinearGradient
+        colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+        style={styles.section}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      > 
         <Text style={[styles.sectionTitleCentered, { color: theme.textPrimary }]}> 
           Inbox ({pendingTasks.length})
         </Text>
@@ -147,15 +152,16 @@ export default function InboxScreen() {
             </AnimatedRow>
           ))
         )}
-      </AnimatedCard>
+      </LinearGradient>
 
       {/* Completed Tasks */}
       {completedTasks.length > 0 && (
-        <AnimatedCard style={[styles.section, { 
-          backgroundColor: theme.cardBackground,
-          borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-          shadowColor: theme.isDark ? '#000000' : '#000000'
-        }]}> 
+        <LinearGradient
+          colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+          style={styles.section}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        > 
           <Text style={[styles.sectionTitleCentered, { color: theme.textPrimary }]}>Completed ({completedTasks.length})</Text>
           {completedTasks.map(task => (
             <AnimatedRow key={task.id} style={[styles.taskCard, { 
@@ -180,7 +186,7 @@ export default function InboxScreen() {
                     {task.note}
                   </Text>
                 )}
-                <Text style={[styles.taskDate, { color: theme.textSecondary }]}>Completed {new Date(task.createdAt).toLocaleDateString()}</Text>
+                <Text style={[styles.taskDate, { color: theme.textSecondary }]}>Completed {new Date(task.completedAt || task.createdAt).toLocaleDateString()}</Text>
               </View>
               
               <TouchableOpacity
@@ -191,7 +197,7 @@ export default function InboxScreen() {
               </TouchableOpacity>
             </AnimatedRow>
           ))}
-        </AnimatedCard>
+        </LinearGradient>
       )}
       </ScrollView>
     </SafeAreaView>

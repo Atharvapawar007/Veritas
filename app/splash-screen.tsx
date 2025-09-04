@@ -1,8 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '@/context/ThemeContext';
-import { Image } from 'expo-image';
+import { useEffect, useRef } from 'react';
+import { Animated, Dimensions, Easing, StyleSheet, View } from 'react-native';
 
 interface SplashScreenProps {
   onFinish: () => void;
@@ -11,291 +9,210 @@ interface SplashScreenProps {
 const { width, height } = Dimensions.get('window');
 
 export default function SplashScreen({ onFinish }: SplashScreenProps) {
-  const { theme } = useTheme();
-  
-  // Animation values
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.3)).current;
-  const titleSlideAnim = useRef(new Animated.Value(-50)).current;
-  const subtitleSlideAnim = useRef(new Animated.Value(50)).current;
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const shimmerAnim = useRef(new Animated.Value(-width)).current;
-  const logoGlow = useRef(new Animated.Value(0)).current;
-  const orb1 = useRef(new Animated.Value(0)).current;
-  const orb2 = useRef(new Animated.Value(0)).current;
-  const orb3 = useRef(new Animated.Value(0)).current;
+  // Animations
+  const bgPulse = useRef(new Animated.Value(0)).current;
+  const logoScale = useRef(new Animated.Value(0.2)).current;
+  const logoEcho = useRef(new Animated.Value(0)).current;
+  const titleAnim = useRef(new Animated.Value(60)).current;
+  const subtitleOpacity = useRef(new Animated.Value(0)).current;
+  const sparks = Array.from({ length: 6 }).map(() => useRef(new Animated.Value(0)).current);
 
   useEffect(() => {
-    // Hero entrance: fade in, scale up, slight ease for premium feel
-    const heroIn = Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 900,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 40,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]);
-
-    // Text reveal
-    const textReveal = Animated.stagger(160, [
-      Animated.spring(titleSlideAnim, {
-        toValue: 0,
-        tension: 70,
-        friction: 9,
-        useNativeDriver: true,
-      }),
-      Animated.spring(subtitleSlideAnim, {
-        toValue: 0,
-        tension: 70,
-        friction: 9,
-        useNativeDriver: true,
-      }),
-    ]);
-
-    // Subtle micro-tilt
-    const tilt = Animated.timing(rotateAnim, {
-      toValue: 1,
-      duration: 1200,
-      easing: Easing.inOut(Easing.quad),
-      useNativeDriver: true,
-    });
-
-    // Background shimmer
-    const shimmerLoop = Animated.loop(
-      Animated.timing(shimmerAnim, {
-        toValue: width,
-        duration: 2200,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    );
-
-    // Logo glow breathing
-    const glowLoop = Animated.loop(
+    // Background pulse loop
+    Animated.loop(
       Animated.sequence([
-        Animated.timing(logoGlow, {
+        Animated.timing(bgPulse, {
           toValue: 1,
-          duration: 1400,
+          duration: 1800,
           easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
-        Animated.timing(logoGlow, {
+        Animated.timing(bgPulse, {
           toValue: 0,
-          duration: 1400,
+          duration: 1800,
           easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
       ])
-    );
+    ).start();
 
-    // Floating orbs drift
-    const orbDrift = (v: Animated.Value, delay: number) =>
+    // Logo pop-in
+    Animated.spring(logoScale, {
+      toValue: 1,
+      friction: 5,
+      tension: 100,
+      useNativeDriver: true,
+    }).start();
+
+    // Echo wave effect
+    Animated.timing(logoEcho, {
+      toValue: 1,
+      duration: 1200,
+      delay: 300,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
+
+    // Title + subtitle
+    Animated.spring(titleAnim, {
+      toValue: 0,
+      friction: 6,
+      tension: 80,
+      delay: 800,
+      useNativeDriver: true,
+    }).start();
+    Animated.timing(subtitleOpacity, {
+      toValue: 1,
+      duration: 1000,
+      delay: 1300,
+      useNativeDriver: true,
+    }).start();
+
+    // Sparks floating
+    sparks.forEach((spark, i) => {
       Animated.loop(
         Animated.sequence([
-          Animated.timing(v, {
+          Animated.timing(spark, {
             toValue: 1,
-            duration: 4000,
-            delay,
+            duration: 3000 + i * 200,
+            delay: i * 250,
             easing: Easing.inOut(Easing.sin),
             useNativeDriver: true,
           }),
-          Animated.timing(v, {
+          Animated.timing(spark, {
             toValue: 0,
-            duration: 4000,
+            duration: 3000 + i * 200,
             easing: Easing.inOut(Easing.sin),
             useNativeDriver: true,
           }),
         ])
-      );
+      ).start();
+    });
 
-    Animated.sequence([heroIn, textReveal, tilt]).start();
-    shimmerLoop.start();
-    glowLoop.start();
-    orbDrift(orb1, 0).start();
-    orbDrift(orb2, 400).start();
-    orbDrift(orb3, 800).start();
-
-    // Exit
+    // Exit after 3.5s
     const timer = setTimeout(() => {
       Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 650,
+        Animated.timing(logoScale, {
+          toValue: 0.8,
+          duration: 600,
           easing: Easing.inOut(Easing.cubic),
           useNativeDriver: true,
         }),
-        Animated.timing(scaleAnim, {
-          toValue: 0.92,
-          duration: 650,
+        Animated.timing(subtitleOpacity, {
+          toValue: 0,
+          duration: 600,
           easing: Easing.inOut(Easing.cubic),
           useNativeDriver: true,
         }),
       ]).start(onFinish);
-    }, 3600);
+    }, 3500);
 
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [fadeAnim, scaleAnim, titleSlideAnim, subtitleSlideAnim, rotateAnim, shimmerAnim, logoGlow, orb1, orb2, orb3, onFinish]);
+    return () => clearTimeout(timer);
+  }, []);
 
-  // Enhanced gradient with more depth - consistent across all themes
-  const gradientColors = ['#0B1220', '#1E293B', '#334155', '#0F172A'] as const;
-  
-  // Rotation interpolation
-  const rotateInterpolate = rotateAnim.interpolate({
+  // Interpolations
+  const bgScale = bgPulse.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', '2deg'],
+    outputRange: [1, 1.08],
   });
 
-  const glowScale = logoGlow.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] });
-  const glowOpacity = logoGlow.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0.6] });
+  const echoScale = logoEcho.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 2.2],
+  });
+  const echoOpacity = logoEcho.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.5, 0],
+  });
 
   return (
     <LinearGradient
-      colors={gradientColors}
+      colors={['#0ea5e9', '#14b8a6', '#ec4899']}
       style={styles.container}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      locations={[0, 0.3, 0.7, 1]}
     >
-      {/* Background shimmer effect */}
+      {/* Energy Burst Background */}
       <Animated.View
         style={[
-          styles.shimmerOverlay,
+          styles.bgPulse,
           {
-            transform: [{ translateX: shimmerAnim }],
+            transform: [{ scale: bgScale }],
           },
         ]}
-      />
-      
-      {/* Background gradient orbs */}
-      <Animated.View
-        style={[styles.orb, {
-          backgroundColor: theme.blue + '33',
-          width: 220, height: 220, borderRadius: 110,
-          top: height * 0.15, left: -60,
-          transform: [
-            { translateY: orb1.interpolate({ inputRange: [0, 1], outputRange: [0, -18] }) },
-            { translateX: orb1.interpolate({ inputRange: [0, 1], outputRange: [0, 12] }) },
-          ],
-        }]}
-      />
-      <Animated.View
-        style={[styles.orb, {
-          backgroundColor: theme.teal + '33',
-          width: 180, height: 180, borderRadius: 90,
-          bottom: height * 0.18, right: -40,
-          transform: [
-            { translateY: orb2.interpolate({ inputRange: [0, 1], outputRange: [0, 16] }) },
-            { translateX: orb2.interpolate({ inputRange: [0, 1], outputRange: [0, -10] }) },
-          ],
-        }]}
-      />
-      <Animated.View
-        style={[styles.orb, {
-          backgroundColor: theme.pink + '29',
-          width: 140, height: 140, borderRadius: 70,
-          bottom: height * 0.08, left: width * 0.25,
-          transform: [
-            { translateY: orb3.interpolate({ inputRange: [0, 1], outputRange: [0, -12] }) },
-            { translateX: orb3.interpolate({ inputRange: [0, 1], outputRange: [0, 8] }) },
-          ],
-        }]}
       />
 
-      {/* Main content with enhanced animations */}
-      <Animated.View
-        style={[
-          styles.content,
-          {
-            opacity: fadeAnim,
-            transform: [
-              { scale: Animated.multiply(scaleAnim, pulseAnim) },
-              { rotate: rotateInterpolate },
-            ],
-          },
-        ]}
-      >
-        {/* Logo with soft glow */}
-        <View style={styles.logoContainer}>
-          <Animated.View
-            style={[
-              styles.logoGlow,
-              {
-                backgroundColor: theme.secondaryAccent + '55',
-                opacity: glowOpacity,
-                transform: [{ scale: glowScale }],
-              },
-            ]}
-          />
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={styles.logo}
-            contentFit="contain"
-            cachePolicy="memory-disk"
-          />
-        </View>
-        {/* Title with slide animation */}
-        <Animated.View
-          style={{
-            transform: [{ translateY: titleSlideAnim }],
-          }}
-        >
-          <Text style={styles.title}>Veritas</Text>
-        </Animated.View>
-        
-        {/* Subtitle with slide animation */}
-        <Animated.View
-          style={{
-            transform: [{ translateY: subtitleSlideAnim }],
-          }}
-        >
-          <Text style={styles.subtitle}>Depth over distraction</Text>
-        </Animated.View>
-        
-        {/* Animated accent line */}
+      {/* Logo with echo wave */}
+      <View style={styles.center}>
         <Animated.View
           style={[
-            styles.accentLine,
+            styles.echo,
             {
-              opacity: fadeAnim,
-              transform: [{ scaleX: scaleAnim }],
+              opacity: echoOpacity,
+              transform: [{ scale: echoScale }],
             },
           ]}
         />
-      </Animated.View>
-      
-      {/* Floating particles effect */}
-      <View style={styles.particlesContainer}>
-        {[...Array(6)].map((_, index) => (
+        <Animated.Image
+          source={require('@/assets/images/logo.png')}
+          style={[
+            styles.logo,
+            {
+              transform: [{ scale: logoScale }],
+            },
+          ]}
+          resizeMode="contain"
+        />
+      </View>
+
+      {/* Title */}
+      <Animated.Text
+        style={[
+          styles.title,
+          {
+            transform: [{ translateY: titleAnim }],
+          },
+        ]}
+      >
+        Veritas
+      </Animated.Text>
+
+      {/* Subtitle */}
+      <Animated.Text
+        style={[
+          styles.subtitle,
+          {
+            opacity: subtitleOpacity,
+          },
+        ]}
+      >
+        Depth over distraction
+      </Animated.Text>
+
+      {/* Sparks */}
+      {sparks.map((spark, i) => {
+        const moveY = spark.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, -40],
+        });
+        const opacity = spark.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.7, 0],
+        });
+        return (
           <Animated.View
-            key={index}
+            key={i}
             style={[
-              styles.particle,
+              styles.spark,
               {
-                left: `${15 + index * 12}%`,
-                top: `${20 + (index % 3) * 25}%`,
-                opacity: fadeAnim,
-                transform: [
-                  {
-                    translateY: Animated.multiply(
-                      pulseAnim,
-                      new Animated.Value(Math.sin(index) * 10)
-                    ),
-                  },
-                ],
+                left: `${20 + i * 12}%`,
+                transform: [{ translateY: moveY }],
+                opacity,
               },
             ]}
           />
-        ))}
-      </View>
+        );
+      })}
     </LinearGradient>
   );
 }
@@ -306,94 +223,56 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  content: {
+  bgPulse: {
+    position: 'absolute',
+    width,
+    height,
+    borderRadius: width,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  center: {
+    justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 2,
+    marginBottom: 30,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50
+  },
+  echo: {
+    position: 'absolute',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#ffffff33',
   },
   title: {
-    fontSize: 56,
+    fontSize: 52,
     fontWeight: '800',
     letterSpacing: 3,
+    color: '#fff',
     textAlign: 'center',
-    marginBottom: 20,
-    fontFamily: 'SF Pro Display Bold',
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(255, 255, 255, 0.8)',
-    textShadowOffset: { width: 0, height: 2 },
+    textShadowColor: '#ffffffaa',
+    textShadowOffset: { width: 0, height: 3 },
     textShadowRadius: 12,
   },
   subtitle: {
+    marginTop: 12,
     fontSize: 20,
-    fontWeight: '400',
-    letterSpacing: 1.5,
-    textAlign: 'center',
     fontStyle: 'italic',
-    color: 'rgba(226, 232, 240, 0.9)',
-    textShadowColor: 'rgba(255, 255, 255, 0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 6,
-    marginBottom: 30,
+    color: '#e2e8f0',
+    textAlign: 'center',
+    letterSpacing: 1.2,
   },
-  shimmerOverlay: {
+  spark: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    width: 100,
-    transform: [{ skewX: '-20deg' }],
-    zIndex: 1,
-  },
-  accentLine: {
-    width: 80,
-    height: 3,
-    backgroundColor: 'rgba(59, 130, 246, 0.8)',
-    borderRadius: 2,
-    marginTop: 10,
-    shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 8,
-  },
-  particlesContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 0,
-  },
-  particle: {
-    position: 'absolute',
-    width: 4,
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 2,
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 4,
-  },
-  orb: {
-    position: 'absolute',
-    opacity: 0.8,
-  },
-  logoContainer: {
-    width: 96,
-    height: 96,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  logoGlow: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-  },
-  logo: {
-    width: 96,
-    height: 96,
+    width: 6,
+    height: 6,
+    backgroundColor: '#fff',
+    borderRadius: 3,
+    shadowColor: '#fff',
+    shadowOpacity: 0.7,
+    shadowRadius: 6,
   },
 });

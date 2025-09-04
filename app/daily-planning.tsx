@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useAppContext } from '@/context/AppContext';
-import { DailyTop3, Task } from '@/types';
+import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
+import { Task, DailyTop3 } from '@/types';
+import { AnimatedCard } from '@/ui/AnimatedCard';
 
 export default function DailyPlanningScreen() {
   const { state, dispatch } = useAppContext();
+  const { theme } = useTheme();
+  const { warning, success } = useToast();
   const router = useRouter();
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
 
@@ -27,7 +33,7 @@ export default function DailyPlanningScreen() {
       } else if (prev.length < 3) {
         return [...prev, taskId];
       } else {
-        Alert.alert('Limit Reached', 'You can only select up to 3 tasks for today.');
+        warning('Limit Reached', 'You can only select up to 3 tasks for today.');
         return prev;
       }
     });
@@ -35,7 +41,7 @@ export default function DailyPlanningScreen() {
 
   const saveDailyTop3 = () => {
     if (selectedTasks.length === 0) {
-      Alert.alert('No Tasks Selected', 'Please select at least one task for today.');
+      warning('No Tasks Selected', 'Please select at least one task for today.');
       return;
     }
 
@@ -46,10 +52,13 @@ export default function DailyPlanningScreen() {
 
     dispatch({ type: 'SET_DAILY_TOP3', payload: newDailyTop3 });
     
-    Alert.alert(
+    success(
       'Daily Plan Set!',
       `You've selected ${selectedTasks.length} task${selectedTasks.length !== 1 ? 's' : ''} for today.`,
-      [{ text: 'OK', onPress: () => router.back() }]
+      {
+        label: 'OK',
+        onPress: () => router.back()
+      }
     );
   };
 

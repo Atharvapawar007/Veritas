@@ -85,6 +85,17 @@ export const calculateLevel = (totalXP: number): UserLevel => {
   return LEVELS[0];
 };
 
+// Get current and next level XP thresholds for a given level
+export const getXPForLevel = (level: number | UserLevel): { currentLevelXP: number; nextLevelXP: number } => {
+  const levelNumber = typeof level === 'number' ? level : level.level;
+  const current = LEVELS.find(l => l.level === levelNumber) ?? LEVELS[0];
+  const next = LEVELS.find(l => l.level === levelNumber + 1);
+  const currentLevelXP = current.xpRequired;
+  // If there is no next level (max level), set nextLevelXP equal to currentLevelXP to indicate cap
+  const nextLevelXP = next ? next.xpRequired : currentLevelXP;
+  return { currentLevelXP, nextLevelXP };
+};
+
 // Calculate XP for focus session based on duration
 export const calculateFocusXP = (durationMinutes: number): number => {
   if (durationMinutes >= 90) return XP_REWARDS.FOCUS_SESSION_90MIN;

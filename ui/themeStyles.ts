@@ -1,22 +1,22 @@
 import { Theme } from '@/context/ThemeContext';
 import { fontStyles } from './fonts';
 
-// Thin, subtle iOS-like border using theme colors
+// Enhanced neon border for dark mode, subtle for light mode
 export const cardBorder = (theme: Theme) => ({
-  borderWidth: theme.isDark ? 1.75 : 1,
-  // Brighter neon edge in dark mode using the accent; subtle grey in light mode
-  borderColor: theme.isDark ? theme.primaryAccent + 'CC' : theme.textSecondary + '26',
+  borderWidth: theme.isDark ? 2 : 1,
+  // Vibrant neon blue border in dark mode; subtle grey in light mode
+  borderColor: theme.isDark ? theme.blue + 'E6' : theme.textSecondary + '26',
 });
 
-// Soft iOS shadow with Android elevation fallback
+// Enhanced neon glow shadow for dark mode
 export const cardShadow = (theme: Theme) => ({
-  // In dark mode, create a soft neon glow using the accent color
-  shadowColor: theme.isDark ? theme.primaryAccent : '#000000',
-  shadowOffset: { width: 0, height: theme.isDark ? 4 : 6 },
-  shadowOpacity: theme.isDark ? 0.55 : 0.15,
-  shadowRadius: theme.isDark ? 20 : 12,
-  // Android fallback (note: elevation color can't be customized on Android)
-  elevation: theme.isDark ? 12 : 3,
+  // Bright neon blue glow in dark mode, standard shadow in light mode
+  shadowColor: theme.isDark ? theme.blue : '#000000',
+  shadowOffset: { width: 0, height: theme.isDark ? 0 : 6 },
+  shadowOpacity: theme.isDark ? 0.8 : 0.15,
+  shadowRadius: theme.isDark ? 25 : 12,
+  // Android fallback
+  elevation: theme.isDark ? 15 : 3,
 });
 
 export const cardSurface = (theme: Theme) => ({

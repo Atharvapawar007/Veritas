@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useAppContext } from '@/context/AppContext';
+import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { JournalEntry } from '@/types';
+import { AnimatedCard } from '@/ui/AnimatedCard';
 
 export default function JournalScreen() {
   const { state, dispatch } = useAppContext();
+  const { theme } = useTheme();
+  const { error, success } = useToast();
   const router = useRouter();
   const [q1, setQ1] = useState('');
   const [q2, setQ2] = useState('');
@@ -38,7 +44,7 @@ export default function JournalScreen() {
 
   const saveEntry = () => {
     if (!q1.trim() && !q2.trim() && !q3.trim()) {
-      Alert.alert('Empty Entry', 'Please answer at least one question before saving.');
+      error('Empty Entry', 'Please answer at least one question before saving.');
       return;
     }
 
@@ -52,10 +58,13 @@ export default function JournalScreen() {
 
     dispatch({ type: 'ADD_JOURNAL_ENTRY', payload: newEntry });
     
-    Alert.alert(
+    success(
       'Entry Saved',
       'Your reflection has been saved. Take a moment to consider your insights.',
-      [{ text: 'OK', onPress: () => router.back() }]
+      {
+        label: 'OK',
+        onPress: () => router.back()
+      }
     );
   };
 
