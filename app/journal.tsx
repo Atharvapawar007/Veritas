@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#000000',
-    fontFamily: 'Cheltenham',
+    fontFamily: 'SF Pro Display Bold',
   },
   clearButton: {
     fontSize: 16,
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     marginTop: 16,
     marginBottom: 8,
-    fontFamily: 'Cheltenham',
+    fontFamily: 'SF Pro Display Bold',
   },
   introSubtitle: {
     fontSize: 16,
@@ -265,14 +265,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-    fontFamily: 'Cheltenham',
+    fontFamily: 'SF Pro Display Bold',
   },
   questionText: {
     fontSize: 18,
     fontWeight: '600',
     color: '#000000',
     flex: 1,
-    fontFamily: 'Cheltenham',
+    fontFamily: 'SF Pro Display Bold',
   },
   answerInput: {
     backgroundColor: '#F2F2F7',
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
-    fontFamily: 'Cheltenham',
+    fontFamily: 'SF Pro Display Bold',
   },
   recentSection: {
     marginBottom: 20,
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000000',
     marginBottom: 16,
-    fontFamily: 'Cheltenham',
+    fontFamily: 'SF Pro Display Bold',
   },
   entryCard: {
     backgroundColor: '#FFFFFF',
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#FF9500',
     marginBottom: 4,
-    fontFamily: 'Cheltenham',
+    fontFamily: 'SF Pro Display Bold',
   },
   entryText: {
     fontSize: 14,

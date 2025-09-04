@@ -1,14 +1,14 @@
-import React from 'react';
-import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { fontStyles } from '@/ui/fonts';
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
 
 export default function TabLayout() {
   const { theme } = useTheme();
 
   return (
     <Tabs
+      sceneContainerStyle={{ backgroundColor: 'transparent' }}
       screenOptions={{
         headerShown: false,
         animation: 'none',
@@ -16,8 +16,9 @@ export default function TabLayout() {
         tabBarInactiveTintColor: theme.isDark ? '#64748B' : '#8E8E93',
         tabBarStyle: {
           backgroundColor: theme.isDark ? '#1E293B' : '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: theme.isDark ? '#334155' : '#E5E5EA',
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
         },
         tabBarLabelStyle: {
           ...fontStyles.tabLabel,

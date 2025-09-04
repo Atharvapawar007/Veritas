@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Modal, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useAppContext } from '@/context/AppContext';
 import { useTheme } from '@/context/ThemeContext';
 import { Habit, HabitEntry } from '@/types';
 import { AnimatedCard, AnimatedRow } from '@/ui/AnimatedCard';
-import { cardSurface } from '@/ui/themeStyles';
-import { fontStyles } from '@/ui/fonts';
+import ProgressRing from '@/ui/ProgressRing';
+import BadgeCard from '@/ui/BadgeCard';
+import * as Gamification from '@/services/gamification';
 
 export default function HabitsScreen() {
   const { state, dispatch } = useAppContext();
@@ -39,55 +41,55 @@ export default function HabitsScreen() {
     setShowAddModal(false);
   };
 
-  const toggleHabitCompletion = (habit: Habit) => {
-    const todayEntry = habit.history.find(entry => entry.date === today);
-    const isCompleted = todayEntry?.completed || false;
-
-    let updatedHistory = [...habit.history];
+  const toggleHabitCompletion = async (habit: Habit) => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
-    if (todayEntry) {
-      // Update existing entry
-      updatedHistory = updatedHistory.map(entry =>
-        entry.date === today ? { ...entry, completed: !isCompleted } : entry
+    const todayEntry = habit.history.find(entry => entry.date === today);
+    const isCurrentlyCompleted = todayEntry?.completed || false;
+
+    // Toggle habit completion
+    dispatch({
+      type: 'TOGGLE_HABIT',
+      payload: { habitId: habit.id, date: today }
+    });
+
+    // Award XP and update gamification if completing (not uncompleting)
+    if (!isCurrentlyCompleted) {
+      // Award XP for habit completion
+      dispatch({
+        type: 'ADD_XP',
+        payload: Gamification.XP_REWARDS.HABIT_COMPLETED
+      });
+
+      // Check for badge unlocks
+      const newBadges = Gamification.checkBadgeUnlocks(
+        state.gamification.badges,
+        state.gamification.stats,
+        state.gamification.streaks.current + 1
       );
-    } else {
-      // Add new entry
-      updatedHistory.push({ date: today, completed: true });
+
+      newBadges.forEach(badge => {
+        dispatch({
+          type: 'UNLOCK_BADGE',
+          payload: badge.id
+        });
+      });
+
+      // Update streak
+      const updatedStreaks = Gamification.updateStreak(
+        state.gamification.streaks.current,
+        state.gamification.streaks.lastActivityDate,
+        state.gamification.streaks.longest
+      );
+
+      dispatch({
+        type: 'UPDATE_STREAK',
+        payload: updatedStreaks
+      });
+
+      // Haptic feedback for completion
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
-
-    // Calculate new streak
-    let newStreak = 0;
-    const sortedHistory = updatedHistory
-      .filter(entry => entry.completed)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    if (sortedHistory.length > 0) {
-      const currentDate = new Date();
-      let checkDate = new Date(currentDate);
-      
-      for (const entry of sortedHistory) {
-        const entryDate = new Date(entry.date);
-        const daysDiff = Math.floor((checkDate.getTime() - entryDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        if (daysDiff === 0 || (daysDiff === 1 && newStreak === 0)) {
-          newStreak++;
-          checkDate = entryDate;
-        } else if (daysDiff === 1) {
-          newStreak++;
-          checkDate = entryDate;
-        } else {
-          break;
-        }
-      }
-    }
-
-    const updatedHabit: Habit = {
-      ...habit,
-      history: updatedHistory,
-      streak: newStreak,
-    };
-
-    dispatch({ type: 'UPDATE_HABIT', payload: updatedHabit });
   };
 
   const deleteHabit = (habitId: string) => {
@@ -130,36 +132,81 @@ export default function HabitsScreen() {
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
       > 
-      <AnimatedCard style={[styles.header, { backgroundColor: theme.cardBackground }]}> 
-        <Text style={[styles.title, { color: theme.textPrimary, textAlign: 'center' }]}>Habits</Text>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => setShowAddModal(true)}
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: theme.textPrimary }]}>Habits</Text>
+        <View
+          style={[
+            styles.addButtonWrapper,
+            { backgroundColor: theme.primaryAccent + '1F', shadowColor: theme.primaryAccent },
+          ]}
         >
-          <Ionicons name="add" size={24} color={theme.primaryAccent} />
-        </TouchableOpacity>
-      </AnimatedCard>
+          <Pressable
+            accessibilityLabel="Add a new habit"
+            accessibilityRole="button"
+            hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+            onPress={async () => {
+              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setShowAddModal(true);
+            }}
+            style={({ pressed }) => [
+              styles.addButton,
+              {
+                backgroundColor: theme.primaryAccent,
+                borderColor: theme.primaryAccent + '55',
+                shadowColor: theme.primaryAccent,
+                transform: [{ scale: pressed ? 0.94 : 1 }],
+                shadowOpacity: pressed ? 0.35 : 0.28,
+                elevation: pressed ? 6 : 9,
+              },
+            ]}
+          >
+            <Ionicons name="add" size={22} color={'#FFFFFF'} />
+          </Pressable>
+        </View>
+      </View>
 
       {state.habits.length === 0 ? (
-        <AnimatedCard style={[styles.emptyState, { backgroundColor: theme.cardBackground }]}> 
-          <Ionicons name="checkmark-circle-outline" size={64} color={theme.textSecondary} />
-          <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>No Habits Yet</Text>
-          <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>Start building better habits with micro-goals</Text>
-          <TouchableOpacity 
-            style={[styles.emptyButton, { backgroundColor: theme.primaryAccent }]}
-            onPress={() => setShowAddModal(true)}
+        <View style={styles.emptyWrapper}>
+          <AnimatedCard
+            style={[
+              styles.emptyState,
+              {
+                backgroundColor: theme.cardBackground,
+                borderColor: theme.isDark
+                  ? 'rgba(255, 255, 255, 0.1)'
+                  : 'rgba(0, 0, 0, 0.05)',
+                shadowColor: theme.isDark ? '#000000' : '#000000',
+              },
+            ]}
           >
-            <Text style={styles.emptyButtonText}>Add Your First Habit</Text>
-          </TouchableOpacity>
-        </AnimatedCard>
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={64}
+              color={theme.textSecondary}
+            />
+            <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>No Habits Yet</Text>
+            <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>Start building better habits with micro-goals</Text>
+            <TouchableOpacity
+              style={[styles.emptyButton, { backgroundColor: theme.primaryAccent }]}
+              onPress={() => setShowAddModal(true)}
+            >
+              <Text style={styles.emptyButtonText}>Add Your First Habit</Text>
+            </TouchableOpacity>
+          </AnimatedCard>
+        </View>
       ) : (
         <View style={styles.habitsList}>
-          {state.habits.map(habit => {
+          {state.habits.map((habit: Habit) => {
             const isCompleted = getHabitStatus(habit);
             const weeklyProgress = getWeeklyProgress(habit);
             
             return (
-              <AnimatedCard key={habit.id} style={[styles.habitCard, { backgroundColor: theme.cardBackground }]}> 
+              <AnimatedCard key={habit.id} style={[styles.habitCard, { 
+                backgroundColor: theme.cardBackground,
+                borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                shadowColor: theme.isDark ? '#000000' : '#000000'
+              }]}> 
                 <View style={styles.habitHeader}>
                   <TouchableOpacity
                     style={styles.habitCheckbox}
@@ -276,49 +323,71 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingBottom: 32,
     flexGrow: 1,
-    justifyContent: 'center',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    paddingTop: 24,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
     position: 'relative',
   },
   title: {
     fontSize: 32,
-    ...fontStyles.title,
-    color: '#000000',
-    textAlign: 'center',
-    flex: 1,
+    fontFamily: 'SF Pro Display Bold',
+    marginBottom: 4,
+  },
+  addButtonWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
   },
   addButton: {
-    padding: 8,
-    position: 'absolute',
-    right: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 9,
   },
   emptyState: {
     alignItems: 'center',
+    marginHorizontal: 24,
     padding: 48,
-    marginTop: 24,
+    borderRadius: 20,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    marginBottom: 20,
+  },
+  emptyWrapper: {
+    flex: 1,
+    justifyContent: 'center',
   },
   emptyTitle: {
     fontSize: 24,
-    ...fontStyles.subtitle,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
     marginTop: 20,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
     textAlign: 'center',
     marginBottom: 32,
@@ -332,21 +401,21 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    ...fontStyles.button,
+    fontFamily: 'SF Pro Display Bold',
   },
   habitsList: {
-    padding: 20,
+    paddingHorizontal: 24,
+    gap: 16,
   },
   habitCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowRadius: 12,
+    elevation: 5,
   },
   habitHeader: {
     flexDirection: 'row',
@@ -362,7 +431,7 @@ const styles = StyleSheet.create({
   },
   habitTitle: {
     fontSize: 18,
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
     marginBottom: 4,
   },
@@ -372,7 +441,7 @@ const styles = StyleSheet.create({
   },
   habitGoal: {
     fontSize: 14,
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
   },
   deleteButton: {
@@ -388,12 +457,12 @@ const styles = StyleSheet.create({
   },
   streakNumber: {
     fontSize: 24,
-    ...fontStyles.title,
+    fontFamily: 'SF Pro Display Bold',
     color: '#34C759',
   },
   streakLabel: {
     fontSize: 12,
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
   },
   weeklyContainer: {
@@ -401,7 +470,7 @@ const styles = StyleSheet.create({
   },
   weeklyLabel: {
     fontSize: 12,
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
     marginBottom: 8,
   },
@@ -434,17 +503,17 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    ...fontStyles.subtitle,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
   },
   modalCancel: {
     fontSize: 16,
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#007AFF',
   },
   modalSave: {
     fontSize: 16,
-    ...fontStyles.button,
+    fontFamily: 'SF Pro Display Bold',
     color: '#007AFF',
   },
   modalContent: {
@@ -452,7 +521,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
     marginBottom: 8,
     marginTop: 16,
@@ -462,7 +531,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     fontSize: 16,
-    ...fontStyles.input,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
     borderWidth: 1,
     borderColor: '#E5E5EA',
@@ -477,7 +546,7 @@ const styles = StyleSheet.create({
   },
   tipText: {
     fontSize: 14,
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
     marginLeft: 12,
     flex: 1,

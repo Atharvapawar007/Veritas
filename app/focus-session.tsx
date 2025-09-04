@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import Svg, { Circle } from 'react-native-svg';
 import { useAppContext } from '@/context/AppContext';
 import { useTheme } from '@/context/ThemeContext';
 import { FocusSession, Task } from '@/types';
+import * as Gamification from '@/services/gamification';
 
 export default function FocusSessionScreen() {
   const { state, dispatch } = useAppContext();
@@ -21,7 +23,7 @@ export default function FocusSessionScreen() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const durations = [25, 50, 90];
-  const pendingTasks = state.tasks.filter(task => task.status === 'pending');
+  const pendingTasks = state.tasks.filter((task: Task) => task.status === 'pending');
 
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
@@ -48,18 +50,21 @@ export default function FocusSessionScreen() {
     };
   }, [isRunning, timeLeft]);
 
-  const startSession = () => {
+  const startSession = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     setIsRunning(true);
     setSessionStartTime(new Date());
     setTimeLeft(selectedDuration * 60);
     setInterruptions(0);
   };
 
-  const pauseSession = () => {
+  const pauseSession = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsRunning(false);
   };
 
-  const resumeSession = () => {
+  const resumeSession = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsRunning(true);
   };
 
@@ -82,7 +87,7 @@ export default function FocusSessionScreen() {
     );
   };
 
-  const completeSession = () => {
+  const completeSession = async () => {
     if (!sessionStartTime) return;
 
     const endTime = new Date();
@@ -100,6 +105,30 @@ export default function FocusSessionScreen() {
 
     dispatch({ type: 'ADD_FOCUS_SESSION', payload: newSession });
     
+    // Award XP based on actual duration
+    const xpEarned = Gamification.calculateFocusXP(actualDuration);
+    dispatch({
+      type: 'ADD_XP',
+      payload: xpEarned
+    });
+
+    // Check for badge unlocks
+    const newBadges = Gamification.checkBadgeUnlocks(
+      state.gamification.badges,
+      state.gamification.stats,
+      state.gamification.streaks.current
+    );
+
+    newBadges.forEach(badge => {
+      dispatch({
+        type: 'UNLOCK_BADGE',
+        payload: badge.id
+      });
+    });
+
+    // Haptic feedback for completion
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    
     setIsRunning(false);
     setTimeLeft(selectedDuration * 60);
     setSessionStartTime(null);
@@ -107,7 +136,7 @@ export default function FocusSessionScreen() {
 
     Alert.alert(
       'Session Complete!',
-      `Great work! You focused for ${actualDuration} minutes.`,
+      `Great work! You focused for ${actualDuration} minutes and earned ${xpEarned} XP!`,
       [{ text: 'OK', onPress: () => router.back() }]
     );
   };
@@ -126,7 +155,11 @@ export default function FocusSessionScreen() {
     // Setup screen
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <View style={[styles.header, { backgroundColor: theme.cardBackground, borderBottomColor: theme.textSecondary }]}>
+        <View style={[styles.header, { 
+          backgroundColor: theme.cardBackground, 
+          borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+          shadowColor: theme.isDark ? '#000000' : '#000000'
+        }]}>
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="close" size={24} color={theme.textPrimary} />
           </TouchableOpacity>
@@ -158,7 +191,11 @@ export default function FocusSessionScreen() {
 
           <Text style={[styles.setupTitle, { color: theme.textPrimary }]}>Select Task (Optional)</Text>
           <TouchableOpacity
-            style={[styles.taskSelector, { backgroundColor: theme.cardBackground }]}
+            style={[styles.taskSelector, { 
+              backgroundColor: theme.cardBackground,
+              borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+              shadowColor: theme.isDark ? '#000000' : '#000000'
+            }]}
             onPress={() => setShowTaskSelector(true)}
           >
             <Text style={[styles.taskSelectorText, { color: theme.textPrimary }]}>
@@ -176,7 +213,11 @@ export default function FocusSessionScreen() {
         {/* Task Selector Modal */}
         <Modal visible={showTaskSelector} animationType="slide" presentationStyle="pageSheet">
           <View style={[styles.modalContainer, { backgroundColor: theme.background }]}>
-            <View style={[styles.modalHeader, { backgroundColor: theme.cardBackground, borderBottomColor: theme.textSecondary }]}>
+            <View style={[styles.modalHeader, { 
+              backgroundColor: theme.cardBackground, 
+              borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+              shadowColor: theme.isDark ? '#000000' : '#000000'
+            }]}>
               <TouchableOpacity onPress={() => setShowTaskSelector(false)}>
                 <Text style={[styles.modalCancel, { color: theme.primaryAccent }]}>Cancel</Text>
               </TouchableOpacity>
@@ -190,10 +231,14 @@ export default function FocusSessionScreen() {
             </View>
             
             <View style={styles.taskList}>
-              {pendingTasks.map(task => (
+              {pendingTasks.map((task: Task) => (
                 <TouchableOpacity
                   key={task.id}
-                  style={[styles.taskOption, { backgroundColor: theme.cardBackground }]}
+                  style={[styles.taskOption, { 
+                    backgroundColor: theme.cardBackground,
+                    borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                    shadowColor: theme.isDark ? '#000000' : '#000000'
+                  }]}
                   onPress={() => {
                     setSelectedTask(task);
                     setShowTaskSelector(false);
@@ -260,13 +305,14 @@ export default function FocusSessionScreen() {
 
         <View style={styles.timerControls}>
           <TouchableOpacity
+            activeOpacity={0.85}
             style={styles.controlButton}
             onPress={isRunning ? pauseSession : resumeSession}
           >
-            <Ionicons 
-              name={isRunning ? "pause" : "play"} 
-              size={32} 
-              color="#FFFFFF" 
+            <Ionicons
+              name={isRunning ? 'pause' : 'play'}
+              size={32}
+              color="#FFFFFF"
             />
           </TouchableOpacity>
         </View>
@@ -287,53 +333,61 @@ export default function FocusSessionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    paddingHorizontal: 24,
+    paddingBottom: 32,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    padding: 24,
+    paddingTop: 24,
+    borderRadius: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 24,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
   },
   setupContent: {
     flex: 1,
-    padding: 20,
+    padding: 24,
   },
   setupTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 24,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
-    marginBottom: 16,
+    marginBottom: 20,
     marginTop: 32,
   },
   durationOptions: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 32,
+    marginBottom: 40,
   },
   durationButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#E5E5EA',
+    width: 90,
+    height: 90,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   selectedDuration: {
     backgroundColor: '#007AFF',
   },
   durationText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
   },
   selectedDurationText: {
@@ -343,13 +397,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 32,
+    padding: 20,
+    borderRadius: 20,
+    marginBottom: 40,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   taskSelectorText: {
-    fontSize: 16,
+    fontSize: 18,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
     flex: 1,
   },
@@ -358,60 +417,76 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#007AFF',
-    padding: 20,
-    borderRadius: 16,
+    padding: 24,
+    borderRadius: 20,
     marginTop: 'auto',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 5,
   },
   startButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontFamily: 'SF Pro Display Bold',
     marginLeft: 12,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    paddingHorizontal: 24,
+    paddingBottom: 32,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    padding: 24,
+    paddingTop: 24,
+    borderRadius: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 24,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
   },
   modalCancel: {
-    fontSize: 16,
+    fontSize: 18,
+    fontFamily: 'SF Pro Display Bold',
     color: '#007AFF',
   },
   modalClear: {
-    fontSize: 16,
+    fontSize: 18,
+    fontFamily: 'SF Pro Display Bold',
     color: '#FF3B30',
   },
   taskList: {
-    padding: 20,
+    padding: 24,
+    gap: 16,
   },
   taskOption: {
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 8,
+    padding: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   taskOptionTitle: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 18,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
     marginBottom: 4,
   },
   taskOptionNote: {
     fontSize: 14,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
   },
   timerContainer: {
@@ -422,23 +497,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    padding: 24,
     paddingTop: 60,
   },
   timerHeaderTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 24,
+    fontFamily: 'SF Pro Display Bold',
     color: '#FFFFFF',
   },
   timerContent: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    padding: 24,
   },
   currentTask: {
-    fontSize: 18,
-    fontWeight: '500',
+    fontSize: 20,
+    fontFamily: 'SF Pro Display Bold',
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 40,
@@ -457,13 +532,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeDisplay: {
-    fontSize: 48,
-    fontWeight: 'bold',
+    fontSize: 56,
+    fontFamily: 'SF Pro Display Bold',
     color: '#FFFFFF',
-    fontFamily: 'monospace',
   },
   durationLabel: {
-    fontSize: 16,
+    fontSize: 18,
+    fontFamily: 'SF Pro Display Bold',
     color: '#FFFFFF',
     opacity: 0.8,
     marginTop: 8,
@@ -472,10 +547,10 @@ const styles = StyleSheet.create({
     marginTop: 60,
   },
   controlButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -483,14 +558,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 20,
-    padding: 8,
+    padding: 12,
     backgroundColor: 'rgba(255, 149, 0, 0.2)',
-    borderRadius: 16,
+    borderRadius: 20,
   },
   interruptionText: {
     color: '#FF9500',
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 16,
+    fontFamily: 'SF Pro Display Bold',
     marginLeft: 4,
   },
 });

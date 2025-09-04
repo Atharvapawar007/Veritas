@@ -1,23 +1,30 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useAppContext } from '@/context/AppContext';
 import { useTheme } from '@/context/ThemeContext';
-import { AnimatedCard, AnimatedRow } from '@/ui/AnimatedCard';
-import { cardSurface } from '@/ui/themeStyles';
-import { fontStyles } from '@/ui/fonts';
+import * as Gamification from '@/services/gamification';
+import { DailyTop3, Task } from '@/types';
+import { AnimatedCard } from '@/ui/AnimatedCard';
+import BadgeCard from '@/ui/BadgeCard';
+import ChallengeCard from '@/ui/ChallengeCard';
+import GrowthTree from '@/ui/GrowthTree';
+import ProgressRing from '@/ui/ProgressRing';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { useEffect, useRef } from 'react';
+import { Animated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
-  const { state } = useAppContext();
+  const { state, dispatch } = useAppContext();
   const { theme } = useTheme();
   const router = useRouter();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const today = new Date().toISOString().split('T')[0];
-  const todayTop3 = state.dailyTop3.find(d => d.date === today);
+  const todayTop3 = state.dailyTop3.find((d: DailyTop3) => d.date === today);
   const todayTasks = todayTop3 
-    ? state.tasks.filter(task => todayTop3.taskIds.includes(task.id))
+    ? state.tasks.filter((task: Task) => todayTop3.taskIds.includes(task.id))
     : [];
 
   const todayHabits = state.habits.filter(habit => {
@@ -30,6 +37,107 @@ export default function HomeScreen() {
     return todayEntry && todayEntry.completed;
   });
 
+  // Gamification calculations
+  const gamification = state.gamification;
+  const currentLevel = gamification.currentLevel;
+  const nextLevel = Gamification.LEVELS.find(l => l.level === currentLevel.level + 1);
+  const progressToNextLevel = nextLevel 
+    ? ((gamification.totalXP - currentLevel.xpRequired) / (nextLevel.xpRequired - currentLevel.xpRequired)) * 100
+    : 100;
+
+  const habitCompletionRate = state.habits.length > 0 
+    ? (completedHabitsToday.length / state.habits.length) * 100 
+    : 0;
+
+  const recentBadges = gamification.badges.filter(b => b.isUnlocked).slice(-3);
+  const activeChallenge = gamification.challenges.find(c => !c.isCompleted);
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const handleHabitToggle = async (habitId: string) => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
+    const habit = state.habits.find(h => h.id === habitId);
+    if (!habit) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const todayEntry = habit.history.find(entry => entry.date === today);
+    const isCurrentlyCompleted = todayEntry && todayEntry.completed;
+
+    // Toggle habit completion
+    dispatch({
+      type: 'TOGGLE_HABIT',
+      payload: { habitId, date: today }
+    });
+
+    // Award XP and update gamification if completing (not uncompleting)
+    if (!isCurrentlyCompleted) {
+      // Award XP for habit completion
+      dispatch({
+        type: 'ADD_XP',
+        payload: Gamification.XP_REWARDS.HABIT_COMPLETED
+      });
+
+      // Check for badge unlocks
+      const newBadges = Gamification.checkBadgeUnlocks(
+        state.gamification.badges,
+        state.gamification.stats,
+        state.gamification.streaks.current + 1
+      );
+
+      newBadges.forEach(badge => {
+        dispatch({
+          type: 'UNLOCK_BADGE',
+          payload: badge.id
+        });
+      });
+
+      // Update streak
+      const newStreakCount = Gamification.updateStreak(
+        state.gamification.streaks.current,
+        state.gamification.streaks.lastActivityDate,
+        state.gamification.streaks.longest
+      );
+
+      dispatch({
+        type: 'UPDATE_STREAK',
+        payload: newStreakCount
+      });
+
+      // Haptic feedback for completion
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+  };
+
+  const handleFocusSession = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    router.push('/focus-session');
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const getDailyQuote = () => {
+    const quotes = [
+      "Focus on being productive instead of busy.",
+      "The way to get started is to quit talking and begin doing.",
+      "Your limitation—it's only your imagination.",
+      "Great things never come from comfort zones.",
+      "Dream it. Wish it. Do it.",
+    ];
+    return quotes[Math.floor(Math.random() * quotes.length)];
+  };
+
   if (state.loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -39,134 +147,289 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: 'transparent' }]}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
-      <AnimatedCard style={[styles.header, cardSurface(theme), { backgroundColor: theme.cardBackground }]}>
-        <Text style={[styles.title, { color: theme.textPrimary }]}>Veritas</Text>
-        <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-          {new Date().toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            month: 'long', 
-            day: 'numeric' 
-          })}
-        </Text>
-      </AnimatedCard>
-
-      {/* Top 3 Tasks Section */}
-      <AnimatedCard style={[styles.section, { backgroundColor: theme.cardBackground }]}> 
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Today's Top 3</Text>
-          <TouchableOpacity 
-            onPress={() => router.push('/daily-planning')}
-            style={styles.addButton}
+        <Animated.View style={{ opacity: fadeAnim }}>
+          {/* Header with Greeting and Daily Quote */}
+          <LinearGradient
+            colors={[theme.cardGradientStart, theme.cardGradientEnd] as const}
+            style={styles.headerGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
           >
-            <Ionicons name="add" size={20} color="#007AFF" />
-          </TouchableOpacity>
-        </View>
-        
-        {todayTasks.length === 0 ? (
-          <TouchableOpacity 
-            style={styles.emptyCard}
-            onPress={() => router.push('/daily-planning')}
-          >
-            <Text style={styles.emptyText}>Set your top 3 tasks for today</Text>
-            <Ionicons name="arrow-forward" size={16} color="#8E8E93" />
-          </TouchableOpacity>
-        ) : (
-          todayTasks.map((task, index) => (
-            <AnimatedRow key={task.id} delay={index * 60} style={styles.taskCard}>
-              <View style={styles.taskNumber}>
-                <Text style={styles.taskNumberText}>{index + 1}</Text>
-              </View>
-              <View style={styles.taskContent}>
-                <Text style={styles.taskTitle}>{task.title}</Text>
-                {task.note && <Text style={styles.taskNote}>{task.note}</Text>}
-              </View>
-              <View style={[
-                styles.taskStatus,
-                { backgroundColor: task.status === 'completed' ? '#34C759' : '#E5E5EA' }
-              ]} />
-            </AnimatedRow>
-          ))
-        )}
-      </AnimatedCard>
-
-      {/* Focus Session Button */}
-      <TouchableOpacity 
-        style={[styles.focusButton, { backgroundColor: theme.primaryAccent }]}
-        onPress={() => router.push('/focus-session')}
-      >
-        <Ionicons name="play-circle" size={24} color="#FFFFFF" />
-        <Text style={styles.focusButtonText}>Start Focus Session</Text>
-      </TouchableOpacity>
-
-      {/* Today's Habits */}
-      <AnimatedCard style={[styles.section, { backgroundColor: theme.cardBackground }]}> 
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Today's Habits</Text>
-          <Text style={[styles.habitProgress, { color: theme.primaryAccent }]}>{completedHabitsToday.length}/{state.habits.length}</Text>
-        </View>
-        
-        {state.habits.length === 0 ? (
-          <TouchableOpacity 
-            style={styles.emptyCard}
-            onPress={() => router.push('/(tabs)/habits')}
-          >
-            <Text style={styles.emptyText}>Add your first habit</Text>
-            <Ionicons name="arrow-forward" size={16} color="#8E8E93" />
-          </TouchableOpacity>
-        ) : (
-          <>
-            {todayHabits.slice(0, 3).map((habit, idx) => (
-              <AnimatedRow key={habit.id} delay={idx * 70} style={styles.habitCard}>
-                <View style={styles.habitContent}>
-                  <Text style={styles.habitTitle}>{habit.title}</Text>
-                  <Text style={styles.habitGoal}>{habit.microGoal}</Text>
+            <View style={styles.greetingSection}>
+              <Text style={[styles.greeting, { color: theme.textPrimary }]}>
+                {getGreeting()}, Atharva 👋
+              </Text>
+              <Text style={[styles.dailyQuote, { color: theme.textSecondary }]}>
+                "{getDailyQuote()}"
+              </Text>
+            </View>
+            
+            {/* Level and XP Display */}
+            <View style={styles.levelSection}>
+              <ProgressRing
+                size={80}
+                strokeWidth={6}
+                progress={progressToNextLevel}
+                color={theme.secondaryAccent}
+              >
+                <View style={styles.levelContent}>
+                  <Text style={[styles.levelNumber, { color: theme.textPrimary }]}>
+                    {currentLevel.level}
+                  </Text>
+                  <Text style={[styles.levelLabel, { color: theme.textSecondary }]}>
+                    LVL
+                  </Text>
                 </View>
-                <View style={styles.habitStreak}>
-                  <Text style={styles.streakNumber}>{habit.streak}</Text>
-                  <Text style={styles.streakLabel}>day streak</Text>
-                </View>
-              </AnimatedRow>
-            ))}
-            {state.habits.length > 3 && (
+              </ProgressRing>
+              <View style={styles.levelInfo}>
+                <Text style={[styles.levelTitle, { color: theme.textPrimary }]}>
+                  {currentLevel.title}
+                </Text>
+                <Text style={[styles.xpText, { color: theme.textSecondary }]}>
+                  {gamification.totalXP} XP
+                </Text>
+              </View>
+            </View>
+          </LinearGradient>
+
+          {/* Habit Checklist Card */}
+          <AnimatedCard style={[styles.habitCard, { 
+            backgroundColor: theme.cardBackground,
+            borderColor: theme.isDark ? theme.tertiaryBackground : 'rgba(0, 0, 0, 0.05)',
+            shadowColor: theme.isDark ? '#000000' : '#000000'
+          }]}>
+            <View style={styles.cardHeader}>
+              <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
+                Today's Habits
+              </Text>
+              <View style={styles.progressContainer}>
+                <ProgressRing
+                  size={40}
+                  strokeWidth={4}
+                  progress={habitCompletionRate}
+                  color={theme.green}
+                >
+                  <Text style={[styles.progressPercentage, { color: theme.textPrimary }]}>
+                    {Math.round(habitCompletionRate)}%
+                  </Text>
+                </ProgressRing>
+              </View>
+            </View>
+            
+            {state.habits.length === 0 ? (
               <TouchableOpacity 
-                style={styles.viewAllButton}
+                style={styles.emptyState}
                 onPress={() => router.push('/(tabs)/habits')}
               >
-                <Text style={styles.viewAllText}>View all habits</Text>
+                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+                  Add your first habit to get started
+                </Text>
+                <Ionicons name="arrow-forward" size={16} color={theme.textSecondary} />
               </TouchableOpacity>
+            ) : (
+              <View style={styles.habitsList}>
+                {state.habits.slice(0, 4).map((habit, index) => {
+                  const todayEntry = habit.history.find(entry => entry.date === today);
+                  const isCompleted = todayEntry && todayEntry.completed;
+                  
+                  return (
+                    <TouchableOpacity
+                      key={habit.id}
+                      style={styles.habitItem}
+                      onPress={() => handleHabitToggle(habit.id)}
+                    >
+                      <View style={[
+                        styles.checkbox,
+                        { 
+                          backgroundColor: isCompleted ? theme.green : 'transparent',
+                          borderColor: theme.textSecondary 
+                        }
+                      ]}>
+                        {isCompleted && (
+                          <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                        )}
+                      </View>
+                      <View style={styles.habitInfo}>
+                        <Text style={[styles.habitTitle, { color: theme.textPrimary }]}>
+                          {habit.title}
+                        </Text>
+                        <Text style={[styles.habitGoal, { color: theme.textSecondary }]}>
+                          {habit.microGoal}
+                        </Text>
+                      </View>
+                      <View style={styles.streakBadge}>
+                        <Text style={[styles.streakText, { color: theme.pink }]}>
+                          {habit.streak}🔥
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             )}
-          </>
-        )}
-      </AnimatedCard>
+          </AnimatedCard>
 
-      {/* Quick Actions */}
-      <AnimatedCard style={[styles.section, styles.lastSection, { backgroundColor: theme.cardBackground }]}>
-        <Text style={[styles.sectionTitleCentered, { color: theme.textPrimary }]}>Quick Actions</Text>
-        <View style={styles.quickActions}>
-          <TouchableOpacity 
-            style={styles.quickAction}
-            onPress={() => router.push('/(tabs)/inbox')}
-          >
-            <Ionicons name="add-circle-outline" size={24} color={theme.primaryAccent} />
-            <Text style={[styles.quickActionText, { color: theme.textSecondary }]}>Quick Capture</Text>
+          {/* Focus Timer Quick-Start Card */}
+          <TouchableOpacity onPress={handleFocusSession}>
+            <LinearGradient
+              colors={[theme.blue, theme.teal] as const}
+              style={[styles.focusCard, {
+                shadowColor: theme.blue,
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.3,
+                shadowRadius: 20,
+                elevation: 12,
+              }]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.focusContent}>
+                <Ionicons name="play-circle" size={48} color="#FFFFFF" />
+                <View style={styles.focusText}>
+                  <Text style={styles.focusTitle}>Start Focus Session</Text>
+                  <Text style={styles.focusSubtitle}>Deep work awaits</Text>
+                </View>
+              </View>
+              <View style={styles.focusStats}>
+                <Text style={styles.focusStatsText}>
+                  {state.focusSessions.length} sessions completed
+                </Text>
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.quickAction}
-            onPress={() => router.push('/journal')}
-          >
-            <Ionicons name="pause-circle-outline" size={24} color={theme.secondaryAccent} />
-            <Text style={[styles.quickActionText, { color: theme.textSecondary }]}>Decision Pause</Text>
-          </TouchableOpacity>
-        </View>
-      </AnimatedCard>
-      
-      {/* Remove spacer to avoid unnecessary empty space above tab bar */}
+
+          {/* Summary Card */}
+          <AnimatedCard style={[styles.summaryCard, { 
+            backgroundColor: theme.cardBackground,
+            borderColor: theme.isDark ? theme.tertiaryBackground : 'rgba(0, 0, 0, 0.05)',
+            shadowColor: theme.isDark ? '#000000' : '#000000'
+          }]}>
+            <Text style={[styles.summaryTitle, { color: theme.textPrimary }]}>
+              Today's Progress
+            </Text>
+            <View style={styles.summaryGrid}>
+              <View style={styles.summaryItem}>
+                <Text style={[styles.summaryNumber, { color: theme.green }]}>
+                  {completedHabitsToday.length}/{state.habits.length}
+                </Text>
+                <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
+                  Habits Done
+                </Text>
+              </View>
+              <View style={styles.summaryItem}>
+                <Text style={[styles.summaryNumber, { color: theme.blue }]}>
+                  {todayTasks.filter(t => t.status === 'completed').length}/{todayTasks.length}
+                </Text>
+                <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
+                  Tasks Done
+                </Text>
+              </View>
+              <View style={styles.summaryItem}>
+                <Text style={[styles.summaryNumber, { color: theme.pink }]}>
+                  {gamification.streaks.current}
+                </Text>
+                <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
+                  Day Streak
+                </Text>
+              </View>
+            </View>
+          </AnimatedCard>
+
+          {/* Recent Badges */}
+          {recentBadges.length > 0 && (
+            <AnimatedCard style={[styles.badgesCard, { 
+              backgroundColor: theme.cardBackground,
+              borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+              shadowColor: theme.isDark ? '#000000' : '#000000'
+            }]}>
+              <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
+                Recent Achievements
+              </Text>
+              <View style={styles.badgesRow}>
+                {recentBadges.map(badge => (
+                  <BadgeCard
+                    key={badge.id}
+                    badge={badge}
+                    size="small"
+                  />
+                ))}
+              </View>
+            </AnimatedCard>
+          )}
+
+          {/* Active Challenge */}
+          {activeChallenge && (
+            <ChallengeCard challenge={activeChallenge} />
+          )}
+
+          {/* Growth Tree */}
+          <View style={styles.growthTreeContainer}>
+            <GrowthTree
+              level={currentLevel.level}
+              currentXP={gamification.totalXP}
+              nextLevelXP={nextLevel?.xpRequired || 0}
+              streakCount={gamification.streaks.current}
+            />
+          </View>
+
+          {/* Quick Actions */}
+          <AnimatedCard style={[styles.quickActionsCard, { 
+            backgroundColor: theme.cardBackground,
+            borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+            shadowColor: theme.isDark ? '#000000' : '#000000'
+          }]}>
+            <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
+              Quick Actions
+            </Text>
+            <View style={styles.quickActionsGrid}>
+              <TouchableOpacity 
+                style={styles.quickAction}
+                onPress={() => router.push('/(tabs)/inbox')}
+              >
+                <Ionicons name="add-circle-outline" size={24} color={theme.primaryAccent} />
+                <Text style={[styles.quickActionText, { color: theme.textSecondary }]}>
+                  Quick Capture
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.quickAction}
+                onPress={() => router.push('/journal')}
+              >
+                <Ionicons name="pause-circle-outline" size={24} color={theme.secondaryAccent} />
+                <Text style={[styles.quickActionText, { color: theme.textSecondary }]}>
+                  Decision Pause
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.quickAction}
+                onPress={() => router.push('/daily-planning')}
+              >
+                <Ionicons name="list-outline" size={24} color={theme.primaryAccent} />
+                <Text style={[styles.quickActionText, { color: theme.textSecondary }]}>
+                  Plan Day
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.quickAction}
+                onPress={() => router.push('/(tabs)/analytics')}
+              >
+                <Ionicons name="analytics-outline" size={24} color={theme.secondaryAccent} />
+                <Text style={[styles.quickActionText, { color: theme.textSecondary }]}>
+                  Analytics
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </AnimatedCard>
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -180,11 +443,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     paddingTop: 16,
-    paddingBottom: 16,
-    flexGrow: 1,
-    justifyContent: 'center',
+    paddingBottom: 0,
   },
   loadingContainer: {
     flex: 1,
@@ -195,196 +456,275 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     color: '#8E8E93',
+    fontFamily: 'SF Pro Display Bold',
   },
-  header: {
-    padding: 20,
-    paddingTop: 24,
-    paddingBottom: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+  // Header and Greeting Styles
+  headerGradient: {
+    padding: 24,
+    borderRadius: 20,
+    marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  title: {
-    fontSize: 32,
-    ...fontStyles.title,
-    marginBottom: 4,
-    letterSpacing: 1,
-    textAlign: 'center',
+  greetingSection: {
+    marginBottom: 20,
   },
-  subtitle: {
+  greeting: {
+    fontSize: 24,
+    fontFamily: 'SF Pro Display Bold',
+    marginBottom: 8,
+  },
+  dailyQuote: {
     fontSize: 16,
-    ...fontStyles.body,
-    textAlign: 'center',
+    fontFamily: 'SF Pro Display Bold',
+    fontStyle: 'italic',
+    opacity: 0.8,
   },
-  section: {
-    marginTop: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 12,
+  levelSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  levelContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  levelNumber: {
+    fontSize: 24,
+    fontFamily: 'SF Pro Display Bold',
+  },
+  levelLabel: {
+    fontSize: 12,
+    fontFamily: 'SF Pro Display Bold',
+    opacity: 0.7,
+  },
+  levelInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  levelTitle: {
+    fontSize: 18,
+    fontFamily: 'SF Pro Display Bold',
+    marginBottom: 4,
+  },
+  xpText: {
+    fontSize: 14,
+    fontFamily: 'SF Pro Display Bold',
+    opacity: 0.8,
+  },
+  // Card Styles
+  habitCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 12,
+    elevation: 5,
   },
-  lastSection: {
-    marginBottom: 0,
-  },
-  sectionHeader: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 20,
-    ...fontStyles.subtitle,
+  cardTitle: {
+    fontSize: 18,
+    fontFamily: 'SF Pro Display Bold',
   },
-  sectionTitleCentered: {
-    fontSize: 20,
-    ...fontStyles.subtitle,
-    textAlign: 'center',
+  progressContainer: {
+    alignItems: 'center',
   },
-  addButton: {
-    padding: 4,
+  progressPercentage: {
+    fontSize: 12,
+    fontFamily: 'SF Pro Display Bold',
   },
-  emptyCard: {
+  emptyState: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
     borderRadius: 12,
   },
   emptyText: {
     fontSize: 16,
-    color: '#8E8E93',
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
+    opacity: 0.6,
   },
-  taskCard: {
+  habitsList: {
+    gap: 12,
+  },
+  habitItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#F2F2F7',
+    padding: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.02)',
     borderRadius: 12,
-    marginBottom: 8,
   },
-  taskNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
     alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
-  taskNumberText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    ...fontStyles.body,
-  },
-  taskContent: {
-    flex: 1,
-  },
-  taskTitle: {
-    fontSize: 16,
-    color: '#000000',
-    marginBottom: 2,
-    ...fontStyles.body,
-  },
-  taskNote: {
-    fontSize: 14,
-    color: '#8E8E93',
-    ...fontStyles.body,
-  },
-  taskStatus: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  focusButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#007AFF',
-    marginTop: 16,
-    padding: 20,
-    borderRadius: 16,
-  },
-  focusButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    marginLeft: 12,
-    ...fontStyles.body,
-  },
-  habitProgress: {
-    fontSize: 16,
-    color: '#007AFF',
-    ...fontStyles.body,
-  },
-  habitCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#F2F2F7',
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  habitContent: {
+  habitInfo: {
     flex: 1,
   },
   habitTitle: {
     fontSize: 16,
-    color: '#000000',
+    fontFamily: 'SF Pro Display Bold',
     marginBottom: 2,
-    ...fontStyles.body,
   },
   habitGoal: {
     fontSize: 14,
-    color: '#8E8E93',
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
+    opacity: 0.6,
   },
-  habitStreak: {
+  streakBadge: {
     alignItems: 'center',
   },
-  streakNumber: {
+  streakText: {
+    fontSize: 14,
+    fontFamily: 'SF Pro Display Bold',
+  },
+  // Focus Card Styles
+  focusCard: {
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  focusContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  focusText: {
+    marginLeft: 16,
+    flex: 1,
+  },
+  focusTitle: {
     fontSize: 20,
-    color: '#34C759',
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
   },
-  streakLabel: {
+  focusSubtitle: {
+    fontSize: 14,
+    fontFamily: 'SF Pro Display Bold',
+    color: '#FFFFFF',
+    opacity: 0.8,
+  },
+  focusStats: {
+    alignItems: 'flex-end',
+  },
+  focusStatsText: {
     fontSize: 12,
-    color: '#8E8E93',
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
+    color: '#FFFFFF',
+    opacity: 0.7,
   },
-  viewAllButton: {
+  // Summary Card Styles
+  summaryCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  summaryTitle: {
+    fontSize: 18,
+    fontFamily: 'SF Pro Display Bold',
+    marginBottom: 16,
+  },
+  summaryGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  summaryItem: {
     alignItems: 'center',
-    padding: 12,
+    flex: 1,
   },
-  viewAllText: {
-    fontSize: 16,
-    color: '#007AFF',
-    ...fontStyles.body,
+  summaryNumber: {
+    fontSize: 24,
+    fontFamily: 'SF Pro Display Bold',
+    marginBottom: 4,
   },
-  quickActions: {
+  summaryLabel: {
+    fontSize: 12,
+    fontFamily: 'SF Pro Display Bold',
+    textAlign: 'center',
+    opacity: 0.7,
+  },
+  // Badges Card Styles
+  badgesCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  badgesRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    marginTop: 12,
+  },
+  // Quick Actions Card Styles
+  quickActionsCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 0,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
     marginTop: 16,
-    marginBottom: 8,
   },
   quickAction: {
     alignItems: 'center',
     padding: 16,
+    width: '48%',
+    marginBottom: 8,
   },
   quickActionText: {
     fontSize: 14,
-    color: '#8E8E93',
+    fontFamily: 'SF Pro Display Bold',
     marginTop: 8,
-    ...fontStyles.body,
+    textAlign: 'center',
+  },
+  growthTreeContainer: {
+    marginBottom: 20,
   },
 });

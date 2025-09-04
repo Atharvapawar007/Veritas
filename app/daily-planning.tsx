@@ -12,7 +12,7 @@ export default function DailyPlanningScreen() {
 
   const today = new Date().toISOString().split('T')[0];
   const todayTop3 = state.dailyTop3.find(d => d.date === today);
-  const pendingTasks = state.tasks.filter(task => task.status === 'pending');
+  const pendingTasks = state.tasks.filter((task: Task) => task.status === 'pending');
 
   useEffect(() => {
     if (todayTop3) {
@@ -55,8 +55,8 @@ export default function DailyPlanningScreen() {
 
   const getSelectedTasks = () => {
     return selectedTasks
-      .map(id => state.tasks.find(task => task.id === id))
-      .filter(task => task !== undefined) as Task[];
+      .map(id => state.tasks.find((task: Task) => task.id === id))
+      .filter((task: Task | undefined): task is Task => task !== undefined);
   };
 
   return (

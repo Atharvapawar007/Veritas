@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, Switch } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppContext } from '@/context/AppContext';
 import { useTheme } from '@/context/ThemeContext';
 import { clearAllData } from '@/services/storage';
-import { fontStyles } from '@/ui/fonts';
+import * as Gamification from '@/services/gamification';
 
 export default function SettingsScreen() {
   const { state, dispatch } = useAppContext();
@@ -43,6 +44,7 @@ export default function SettingsScreen() {
                   notificationsEnabled: true,
                   remindersEnabled: true,
                 },
+                gamification: Gamification.createInitialGamificationState(),
               }});
               Alert.alert('Success', 'All data has been cleared.');
             } catch (error) {
@@ -57,13 +59,19 @@ export default function SettingsScreen() {
   const durations = [15, 25, 30, 45, 50, 60, 90];
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.cardBackground, borderBottomColor: theme.textSecondary }]}>
-        <Text style={[styles.title, { color: theme.textPrimary }]}>Settings</Text>
-      </View>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: theme.textPrimary }]}>Settings</Text>
+        </View>
 
       {/* Focus Settings */}
-      <View style={[styles.section, { backgroundColor: theme.cardBackground }]}>
+      <View style={[styles.section, { 
+        backgroundColor: theme.cardBackground,
+        borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+        shadowColor: theme.isDark ? '#000000' : '#000000'
+      }]}>
         <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Focus Sessions</Text>
         
         <View style={styles.settingItem}>
@@ -140,7 +148,11 @@ export default function SettingsScreen() {
       </View>
 
       {/* Appearance Settings */}
-      <View style={[styles.section, { backgroundColor: theme.cardBackground }]}>
+      <View style={[styles.section, { 
+        backgroundColor: theme.cardBackground,
+        borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+        shadowColor: theme.isDark ? '#000000' : '#000000'
+      }]}>
         <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Appearance</Text>
         
         <View style={styles.switchItem}>
@@ -163,7 +175,11 @@ export default function SettingsScreen() {
       </View>
 
       {/* Notification Settings */}
-      <View style={[styles.section, { backgroundColor: theme.cardBackground }]}>
+      <View style={[styles.section, { 
+        backgroundColor: theme.cardBackground,
+        borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+        shadowColor: theme.isDark ? '#000000' : '#000000'
+      }]}>
         <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Notifications</Text>
         
         <View style={[styles.switchItem, { borderBottomColor: theme.background }]}>
@@ -204,7 +220,11 @@ export default function SettingsScreen() {
       </View>
 
       {/* App Info */}
-      <View style={[styles.section, { backgroundColor: theme.cardBackground }]}>
+      <View style={[styles.section, { 
+        backgroundColor: theme.cardBackground,
+        borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+        shadowColor: theme.isDark ? '#000000' : '#000000'
+      }]}>
         <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>About</Text>
         
         <View style={[styles.infoItem, { borderBottomColor: theme.background }]}>
@@ -229,7 +249,11 @@ export default function SettingsScreen() {
       </View>
 
       {/* Data Management */}
-      <View style={[styles.section, { backgroundColor: theme.cardBackground }]}>
+      <View style={[styles.section, { 
+        backgroundColor: theme.cardBackground,
+        borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+        shadowColor: theme.isDark ? '#000000' : '#000000'
+      }]}>
         <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Data Management</Text>
         
         <TouchableOpacity style={styles.dangerItem} onPress={clearAllAppData}>
@@ -244,7 +268,11 @@ export default function SettingsScreen() {
       </View>
 
       {/* Tips */}
-      <View style={[styles.section, { backgroundColor: theme.cardBackground }]}>
+      <View style={[styles.section, { 
+        backgroundColor: theme.cardBackground,
+        borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+        shadowColor: theme.isDark ? '#000000' : '#000000'
+      }]}>
         <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Productivity Tips</Text>
         
         <View style={styles.tip}>
@@ -269,67 +297,80 @@ export default function SettingsScreen() {
         </View>
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  container: {
+    paddingBottom: 32,
   },
   header: {
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
   title: {
     fontSize: 32,
-    ...fontStyles.title,
-    color: '#000000',
+    fontFamily: 'SF Pro Display Bold',
+    marginBottom: 4,
   },
   section: {
-    backgroundColor: '#FFFFFF',
-    marginTop: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    marginHorizontal: 24,
+    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   sectionTitle: {
-    fontSize: 20,
-    ...fontStyles.subtitle,
+    fontSize: 24,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   settingItem: {
     marginBottom: 24,
   },
   settingLabel: {
-    fontSize: 16,
-    ...fontStyles.body,
+    fontSize: 18,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
     marginBottom: 12,
   },
   durationSelector: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 12,
   },
   durationOption: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#F2F2F7',
-    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   selectedDuration: {
     backgroundColor: '#007AFF',
     borderColor: '#007AFF',
   },
   durationText: {
-    fontSize: 14,
-    ...fontStyles.body,
+    fontSize: 16,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
   },
   selectedDurationText: {
@@ -339,9 +380,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
   },
   switchContent: {
     flexDirection: 'row',
@@ -349,79 +390,83 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   switchText: {
-    marginLeft: 12,
+    marginLeft: 16,
     flex: 1,
   },
   switchLabel: {
-    fontSize: 16,
-    ...fontStyles.body,
+    fontSize: 18,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   switchDescription: {
     fontSize: 14,
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
   },
   infoItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
   },
   infoContent: {
-    marginLeft: 12,
+    marginLeft: 16,
     flex: 1,
   },
   infoLabel: {
-    fontSize: 16,
-    ...fontStyles.body,
+    fontSize: 18,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   infoDescription: {
     fontSize: 14,
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
     lineHeight: 20,
   },
   dangerItem: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 12,
+    alignItems: 'center',
+    paddingVertical: 16,
   },
   dangerContent: {
-    marginLeft: 12,
+    marginLeft: 16,
     flex: 1,
   },
   dangerLabel: {
-    fontSize: 16,
-    ...fontStyles.body,
+    fontSize: 18,
+    fontFamily: 'SF Pro Display Bold',
     color: '#FF3B30',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   dangerDescription: {
     fontSize: 14,
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
     lineHeight: 20,
   },
   tip: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 20,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
   },
   tipText: {
     fontSize: 14,
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
-    marginLeft: 8,
+    marginLeft: 12,
     flex: 1,
     lineHeight: 20,
   },
   tipBold: {
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
   },
 });

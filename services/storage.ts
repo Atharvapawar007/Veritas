@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Task, FocusSession, Habit, DailyTop3, JournalEntry, AppSettings } from '@/types';
+import { Task, FocusSession, Habit, DailyTop3, JournalEntry, AppSettings, GamificationState } from '@/types';
 
 const STORAGE_KEYS = {
   TASKS: 'tasks',
@@ -8,6 +8,7 @@ const STORAGE_KEYS = {
   DAILY_TOP3: 'daily_top3',
   JOURNAL_ENTRIES: 'journal_entries',
   SETTINGS: 'settings',
+  GAMIFICATION: 'gamification',
 };
 
 // Generic storage functions
@@ -97,6 +98,14 @@ export const getSettings = (): Promise<AppSettings> => {
     remindersEnabled: true,
   };
   return getObject(STORAGE_KEYS.SETTINGS, defaultSettings);
+};
+
+// Gamification storage functions
+export const storeGamificationState = (gamification: GamificationState): Promise<void> => 
+  storeObject(STORAGE_KEYS.GAMIFICATION, gamification);
+
+export const getGamificationState = (): Promise<GamificationState | null> => {
+  return getObject(STORAGE_KEYS.GAMIFICATION, null);
 };
 
 // Clear all data function

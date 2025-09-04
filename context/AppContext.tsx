@@ -1,30 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { Task, FocusSession, Habit, DailyTop3, JournalEntry, AppSettings } from '@/types';
+import { Task, FocusSession, Habit, DailyTop3, JournalEntry, AppSettings, GamificationState, AppState, AppAction } from '@/types';
 import * as Storage from '@/services/storage';
-
-interface AppState {
-  tasks: Task[];
-  focusSessions: FocusSession[];
-  habits: Habit[];
-  dailyTop3: DailyTop3[];
-  journalEntries: JournalEntry[];
-  settings: AppSettings;
-  loading: boolean;
-}
-
-type AppAction =
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'LOAD_DATA'; payload: Omit<AppState, 'loading'> }
-  | { type: 'ADD_TASK'; payload: Task }
-  | { type: 'UPDATE_TASK'; payload: Task }
-  | { type: 'DELETE_TASK'; payload: string }
-  | { type: 'ADD_FOCUS_SESSION'; payload: FocusSession }
-  | { type: 'ADD_HABIT'; payload: Habit }
-  | { type: 'UPDATE_HABIT'; payload: Habit }
-  | { type: 'DELETE_HABIT'; payload: string }
-  | { type: 'SET_DAILY_TOP3'; payload: DailyTop3 }
-  | { type: 'ADD_JOURNAL_ENTRY'; payload: JournalEntry }
-  | { type: 'UPDATE_SETTINGS'; payload: AppSettings };
+import * as Gamification from '@/services/gamification';
 
 const initialState: AppState = {
   tasks: [],
@@ -39,6 +16,7 @@ const initialState: AppState = {
     notificationsEnabled: true,
     remindersEnabled: true,
   },
+  gamification: Gamification.createInitialGamificationState(),
   loading: true,
 };
 
@@ -78,6 +56,25 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         ...state,
         habits: state.habits.filter(habit => habit.id !== action.payload),
       };
+    case 'TOGGLE_HABIT':
+      return {
+        ...state,
+        habits: state.habits.map(habit => {
+          if (habit.id === action.payload.habitId) {
+            const existingEntry = habit.history.find(entry => entry.date === action.payload.date);
+            const updatedHistory = existingEntry
+              ? habit.history.map(entry =>
+                  entry.date === action.payload.date
+                    ? { ...entry, completed: !entry.completed }
+                    : entry
+                )
+              : [...habit.history, { date: action.payload.date, completed: true }];
+            
+            return { ...habit, history: updatedHistory };
+          }
+          return habit;
+        }),
+      };
     case 'SET_DAILY_TOP3':
       return {
         ...state,
@@ -88,6 +85,39 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, journalEntries: [...state.journalEntries, action.payload] };
     case 'UPDATE_SETTINGS':
       return { ...state, settings: action.payload };
+    case 'UPDATE_GAMIFICATION':
+      return { ...state, gamification: action.payload };
+    case 'ADD_XP':
+      const newTotalXP = state.gamification.totalXP + action.payload;
+      const newLevel = Gamification.calculateLevel(newTotalXP);
+      return {
+        ...state,
+        gamification: {
+          ...state.gamification,
+          totalXP: newTotalXP,
+          currentLevel: newLevel,
+        },
+      };
+    case 'UNLOCK_BADGE':
+      return {
+        ...state,
+        gamification: {
+          ...state.gamification,
+          badges: state.gamification.badges.map(badge =>
+            badge.id === action.payload
+              ? { ...badge, isUnlocked: true, unlockedAt: new Date() }
+              : badge
+          ),
+        },
+      };
+    case 'UPDATE_STREAK':
+      return {
+        ...state,
+        gamification: {
+          ...state.gamification,
+          streaks: action.payload,
+        },
+      };
     default:
       return state;
   }
@@ -107,13 +137,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const loadData = async () => {
     try {
-      const [tasks, focusSessions, habits, dailyTop3, journalEntries, settings] = await Promise.all([
+      const [tasks, focusSessions, habits, dailyTop3, journalEntries, settings, gamification] = await Promise.all([
         Storage.getTasks(),
         Storage.getFocusSessions(),
         Storage.getHabits(),
         Storage.getDailyTop3(),
         Storage.getJournalEntries(),
         Storage.getSettings(),
+        Storage.getGamificationState(),
       ]);
 
       dispatch({
@@ -125,6 +156,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           dailyTop3,
           journalEntries,
           settings,
+          gamification: gamification || Gamification.createInitialGamificationState(),
         },
       });
     } catch (error) {
@@ -169,6 +201,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       Storage.storeSettings(state.settings);
     }
   }, [state.settings, state.loading]);
+
+  useEffect(() => {
+    if (!state.loading) {
+      Storage.storeGamificationState(state.gamification);
+    }
+  }, [state.gamification, state.loading]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>

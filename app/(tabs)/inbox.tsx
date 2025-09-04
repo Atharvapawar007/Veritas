@@ -6,8 +6,6 @@ import { useAppContext } from '@/context/AppContext';
 import { useTheme } from '@/context/ThemeContext';
 import { Task } from '@/types';
 import { AnimatedCard, AnimatedRow } from '@/ui/AnimatedCard';
-import { cardSurface } from '@/ui/themeStyles';
-import { fontStyles } from '@/ui/fonts';
 
 export default function InboxScreen() {
   const { state, dispatch } = useAppContext();
@@ -60,8 +58,8 @@ export default function InboxScreen() {
     );
   };
 
-  const pendingTasks = state.tasks.filter(task => task.status === 'pending');
-  const completedTasks = state.tasks.filter(task => task.status === 'completed');
+  const pendingTasks = state.tasks.filter((task: Task) => task.status === 'pending');
+  const completedTasks = state.tasks.filter((task: Task) => task.status === 'completed');
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}> 
@@ -70,7 +68,11 @@ export default function InboxScreen() {
         contentContainerStyle={styles.scrollContent}
       > 
       {/* Quick Capture Form */}
-      <AnimatedCard style={[styles.captureSection, { backgroundColor: theme.cardBackground }]}> 
+      <AnimatedCard style={[styles.captureSection, { 
+        backgroundColor: theme.cardBackground,
+        borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+        shadowColor: theme.isDark ? '#000000' : '#000000'
+      }]}> 
         <Text style={[styles.sectionTitleCentered, { color: theme.textPrimary }]}>Quick Capture</Text>
         
         <TextInput
@@ -99,7 +101,11 @@ export default function InboxScreen() {
       </AnimatedCard>
 
       {/* Pending Tasks */}
-      <AnimatedCard style={[styles.section, { backgroundColor: theme.cardBackground }]}> 
+      <AnimatedCard style={[styles.section, { 
+        backgroundColor: theme.cardBackground,
+        borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+        shadowColor: theme.isDark ? '#000000' : '#000000'
+      }]}> 
         <Text style={[styles.sectionTitleCentered, { color: theme.textPrimary }]}> 
           Inbox ({pendingTasks.length})
         </Text>
@@ -112,7 +118,11 @@ export default function InboxScreen() {
           </View>
         ) : (
           pendingTasks.map((task, idx) => (
-            <AnimatedRow key={task.id} delay={idx * 50} style={[styles.taskCard, { backgroundColor: theme.background }]}> 
+            <AnimatedRow key={task.id} delay={idx * 50} style={[styles.taskCard, { 
+              backgroundColor: theme.background,
+              borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+              shadowColor: theme.isDark ? '#000000' : '#000000'
+            }]}> 
               <TouchableOpacity
                 style={styles.taskCheckbox}
                 onPress={() => updateTaskStatus(task.id, 'completed')}
@@ -141,10 +151,19 @@ export default function InboxScreen() {
 
       {/* Completed Tasks */}
       {completedTasks.length > 0 && (
-        <AnimatedCard style={[styles.section, { backgroundColor: theme.cardBackground }]}> 
+        <AnimatedCard style={[styles.section, { 
+          backgroundColor: theme.cardBackground,
+          borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+          shadowColor: theme.isDark ? '#000000' : '#000000'
+        }]}> 
           <Text style={[styles.sectionTitleCentered, { color: theme.textPrimary }]}>Completed ({completedTasks.length})</Text>
           {completedTasks.map(task => (
-            <AnimatedRow key={task.id} style={[styles.taskCard, { backgroundColor: theme.background, opacity: 0.7 }]}> 
+            <AnimatedRow key={task.id} style={[styles.taskCard, { 
+              backgroundColor: theme.background, 
+              opacity: 0.7,
+              borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+              shadowColor: theme.isDark ? '#000000' : '#000000'
+            }]}> 
               <TouchableOpacity
                 style={styles.taskCheckbox}
                 onPress={() => updateTaskStatus(task.id, 'pending')}
@@ -188,72 +207,80 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingHorizontal: 24,
+    paddingBottom: 32,
     flexGrow: 1,
-    justifyContent: 'center',
   },
   captureSection: {
-    backgroundColor: '#FFFFFF',
-    padding: 20,
+    padding: 24,
     paddingTop: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderRadius: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   section: {
-    backgroundColor: '#FFFFFF',
     marginTop: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   sectionTitle: {
-    fontSize: 20,
-    ...fontStyles.subtitle,
+    fontSize: 24,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
     marginBottom: 16,
   },
   sectionTitleCentered: {
-    fontSize: 20,
-    ...fontStyles.subtitle,
+    fontSize: 24,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   titleInput: {
     fontSize: 18,
-    ...fontStyles.input,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
-    backgroundColor: '#F2F2F7',
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     marginBottom: 12,
     minHeight: 50,
     textAlignVertical: 'top',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
   },
   noteInput: {
     fontSize: 16,
-    ...fontStyles.input,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
-    backgroundColor: '#F2F2F7',
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     marginBottom: 16,
     minHeight: 80,
     textAlignVertical: 'top',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
   },
   addButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    ...fontStyles.button,
+    fontFamily: 'SF Pro Display Bold',
     marginLeft: 8,
   },
   emptyState: {
@@ -264,13 +291,13 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
     marginTop: 16,
   },
   emptySubtext: {
     fontSize: 14,
-    ...fontStyles.caption,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
     marginTop: 4,
   },
@@ -278,9 +305,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     padding: 16,
-    backgroundColor: '#F2F2F7',
-    borderRadius: 12,
-    marginBottom: 8,
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   completedTaskCard: {
     opacity: 0.7,
@@ -294,7 +325,7 @@ const styles = StyleSheet.create({
   },
   taskTitle: {
     fontSize: 16,
-    ...fontStyles.body,
+    fontFamily: 'SF Pro Display Bold',
     color: '#000000',
     marginBottom: 4,
   },
@@ -304,7 +335,7 @@ const styles = StyleSheet.create({
   },
   taskNote: {
     fontSize: 14,
-    ...fontStyles.caption,
+    fontFamily: 'SF Pro Display Bold',
     color: '#8E8E93',
     marginBottom: 4,
   },
@@ -313,7 +344,7 @@ const styles = StyleSheet.create({
   },
   taskDate: {
     fontSize: 12,
-    ...fontStyles.caption,
+    fontFamily: 'SF Pro Display Bold',
     color: '#C7C7CC',
   },
   deleteButton: {
